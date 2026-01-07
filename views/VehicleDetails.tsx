@@ -85,8 +85,6 @@ const VehicleDetails: React.FC = () => {
       vehicleId: vehicle.id,
       vehiclePlate: vehicle.plate,
       vehicleModel: vehicle.model,
-      // Fix: Added missing vehicleKm property required by ServiceOrder type
-      vehicleKm: parseFloat(newService.km) || vehicle.km,
       problem: newService.description,
       items: [],
       laborValue: newService.labor,
@@ -327,7 +325,7 @@ const VehicleDetails: React.FC = () => {
                   <span className="text-xs font-black text-[#A32121] uppercase tracking-widest">Insight de Manutenção</span>
                 </div>
                 <p className="text-[10px] font-bold text-zinc-400 leading-relaxed uppercase">
-                  Veículo saudável. Próxima revisão preventiva recomendada para daqui 5.000 KM or 6 meses.
+                  Veículo saudável. Próxima revisão preventiva recomendada para daqui 5.000 KM ou 6 meses.
                 </p>
               </div>
             </div>

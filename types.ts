@@ -64,7 +64,6 @@ export interface ServiceOrder {
   vehicleId: string;
   vehiclePlate: string;
   vehicleModel: string;
-  vehicleKm: number;
   problem: string;
   items: OSItem[];
   laborValue: number;

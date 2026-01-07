@@ -3,14 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
-  Trash2, 
-  Eye, 
-  X, 
-  Printer,
-  ClipboardList
+  Filter, 
+  FileText, 
+  Printer, 
+  Share2,
+  Trash2,
+  ChevronRight,
+  ClipboardList,
+  Eye,
+  X,
+  Wrench
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ServiceOrder } from '../types';
+import { ServiceOrder, OSStatus } from '../types';
 
 const ServiceOrders: React.FC = () => {
   const navigate = useNavigate();
@@ -81,8 +86,8 @@ const ServiceOrders: React.FC = () => {
                 <div className="bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800">
                   <span className="text-[10px] font-black text-[#A32121] uppercase tracking-widest">Nota #{os.osNumber}</span>
                 </div>
-                <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border ${os.paymentStatus === 'Pago' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
-                  {os.paymentStatus}
+                <span className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                  {os.status}
                 </span>
               </div>
               
@@ -95,7 +100,7 @@ const ServiceOrders: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3 my-6">
                 <div className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
-                  <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Data</p>
+                  <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Data Emissão</p>
                   <p className="text-xs font-bold text-zinc-400">{new Date(os.createdAt).toLocaleDateString('pt-BR')}</p>
                 </div>
                 <div className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
@@ -108,117 +113,133 @@ const ServiceOrders: React.FC = () => {
                 <button 
                   onClick={() => handleDelete(os.id)}
                   className="p-2 text-zinc-800 hover:text-red-500 transition-colors"
-                  title="Excluir"
+                  title="Excluir Permanentemente"
                 >
                   <Trash2 size={18} />
                 </button>
-                <button 
-                  onClick={() => setSelectedOS(os)}
-                  className="px-4 py-2 bg-[#A32121] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-[#8B1A1A] transition-all flex items-center gap-2"
-                >
-                  <Eye size={14} />
-                  Ver Nota
-                </button>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setSelectedOS(os)}
+                    className="px-4 py-2 bg-[#A32121] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-[#8B1A1A] transition-all flex items-center gap-2"
+                  >
+                    <Eye size={14} />
+                    Ver Nota
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Simplified Functional Note Viewer Modal */}
+      {/* Professional Note Viewer Modal */}
       {selectedOS && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4 overflow-y-auto no-print">
-          <div className="bg-white w-full max-w-2xl min-h-[90vh] my-auto rounded-xl p-10 text-black shadow-2xl relative">
-            <button onClick={() => setSelectedOS(null)} className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-black">
-              <X size={24} />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4 overflow-y-auto no-scrollbar no-print">
+          <div className="bg-white w-full max-w-2xl min-h-[90vh] my-auto rounded-3xl p-10 text-zinc-900 shadow-2xl relative">
+            <button onClick={() => setSelectedOS(null)} className="absolute top-6 right-6 p-2 text-zinc-300 hover:text-zinc-900 transition-colors">
+              <X size={28} />
             </button>
             
-            <div id="simple-note-view-stored">
-              {/* Header */}
-              <div className="text-center border-b pb-6 mb-8">
-                <h1 className="text-2xl font-black uppercase tracking-tight">Kaenpro Motors</h1>
-                <p className="text-sm font-bold">Telefone: (11) 99999-9999</p>
-                <p className="text-[10px] uppercase text-zinc-500">Mecânica de Precisão e Performance</p>
-              </div>
-
-              {/* Note Metadata */}
-              <div className="flex justify-between items-start mb-8 text-sm">
-                <div>
-                  <p><strong>Nota / OS:</strong> #{selectedOS.osNumber}</p>
-                  <p><strong>Data Emissão:</strong> {new Date(selectedOS.createdAt).toLocaleDateString('pt-BR')}</p>
+            <div id="print-area-viewer" className="bg-white p-2">
+              <div className="flex justify-between items-center mb-10 border-b-2 border-zinc-100 pb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                    <Wrench size={32} />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAENPRO <span className="text-red-600">MOTORS</span></h1>
+                    <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest mt-0.5">Mecânica de Precisão e Performance</p>
+                    <p className="text-[9px] text-zinc-400 font-bold">Contato: (11) 99999-9999 • São Paulo - SP</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                   <p className="bg-black text-white px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest">{selectedOS.paymentStatus}</p>
+                  <div className="bg-zinc-100 px-4 py-2 rounded-xl mb-1">
+                    <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Nota Fiscal de Serviço</p>
+                    <p className="text-xl font-black text-zinc-900">Nº {selectedOS.osNumber}</p>
+                  </div>
+                  <p className="text-xs font-bold text-zinc-500 uppercase">{new Date(selectedOS.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                 </div>
               </div>
 
-              {/* Client & Vehicle */}
-              <div className="grid grid-cols-2 gap-4 mb-8 text-sm border p-4 rounded-lg bg-zinc-50">
-                <div>
-                  <h3 className="font-black border-b mb-2 text-xs uppercase tracking-widest text-zinc-400">Dados do Cliente</h3>
-                  <p><strong>Nome:</strong> {selectedOS.clientName}</p>
+              <div className="grid grid-cols-2 gap-10 mb-10">
+                <div className="space-y-1 bg-zinc-50 p-5 rounded-2xl border border-zinc-100">
+                  <h5 className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-2">Dados do Cliente</h5>
+                  <p className="font-black text-sm text-zinc-900">{selectedOS.clientName}</p>
+                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-tighter">Histórico Permanente</p>
                 </div>
-                <div>
-                  <h3 className="font-black border-b mb-2 text-xs uppercase tracking-widest text-zinc-400">Dados do Veículo</h3>
-                  <p><strong>Modelo:</strong> {selectedOS.vehicleModel}</p>
-                  <p><strong>Placa:</strong> {selectedOS.vehiclePlate}</p>
-                  <p><strong>KM:</strong> {selectedOS.vehicleKm ? selectedOS.vehicleKm.toLocaleString('pt-BR') : 'N/A'} KM</p>
+                <div className="space-y-1 bg-zinc-50 p-5 rounded-2xl border border-zinc-100">
+                  <h5 className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-2">Dados do Veículo</h5>
+                  <p className="font-black text-sm text-red-600 uppercase tracking-tight">{selectedOS.vehiclePlate}</p>
+                  <p className="text-xs font-black text-zinc-900 uppercase">{selectedOS.vehicleModel}</p>
                 </div>
               </div>
 
-              {/* Items Table */}
-              <div className="mb-8">
-                <h3 className="font-black text-xs uppercase tracking-widest text-zinc-400 mb-4">Serviços e Peças</h3>
+              <div className="mb-10 min-h-[200px]">
+                <h5 className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-4 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-red-600 rounded-full"></div>
+                  Detalhamento dos Serviços e Peças
+                </h5>
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b font-black uppercase text-[10px]">
-                      <th className="py-2">Descrição</th>
-                      <th className="py-2 text-center">Qtd</th>
-                      <th className="py-2 text-right">Unitário</th>
-                      <th className="py-2 text-right">Subtotal</th>
+                    <tr className="border-b-2 border-zinc-100 text-zinc-400 uppercase font-black tracking-widest text-[8px]">
+                      <th className="py-3 px-2">Descrição Detalhada</th>
+                      <th className="py-3 px-2 text-center w-20">Quantidade</th>
+                      <th className="py-3 px-2 text-right w-24">V. Unitário</th>
+                      <th className="py-3 px-2 text-right w-24">Subtotal</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-zinc-50">
                     {selectedOS.items.map((item, i) => (
-                      <tr key={i} className="border-b">
-                        <td className="py-3">{item.description}</td>
-                        <td className="py-3 text-center">{item.quantity}</td>
-                        <td className="py-3 text-right">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-3 text-right">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                      <tr key={i} className="text-zinc-700">
+                        <td className="py-4 px-2 font-bold">{item.description}</td>
+                        <td className="py-4 px-2 text-center font-black text-zinc-400">{item.quantity}</td>
+                        <td className="py-4 px-2 text-right">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-right font-black">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
+                    {selectedOS.laborValue > 0 && (
+                      <tr className="bg-zinc-50/50">
+                        <td className="py-4 px-2 font-black text-zinc-900">Mão de Obra / Serviço Técnico</td>
+                        <td className="py-4 px-2 text-center font-black text-zinc-400">01</td>
+                        <td className="py-4 px-2 text-right">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-right font-black">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
 
-              {/* Summary */}
-              <div className="flex justify-end pt-4 border-t-2">
-                <div className="w-64 space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span>Mão de Obra / Serviço:</span>
-                    <span className="font-bold">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              <div className="flex justify-between items-end pt-8 border-t-2 border-zinc-100">
+                <div className="flex flex-col gap-4">
+                  <div className="bg-zinc-900 text-white px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest inline-block">
+                    CONDIÇÕES DE GARANTIA: 90 DIAS
                   </div>
+                  <div className="text-[9px] text-zinc-400 font-bold max-w-xs leading-relaxed italic">
+                    * Reimpressão de nota histórica.
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-3">
                   {selectedOS.discount > 0 && (
-                    <div className="flex justify-between text-xs text-red-600">
-                      <span>Desconto:</span>
-                      <span className="font-bold">- R$ {selectedOS.discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <div className="flex justify-between w-48 text-xs border-b border-zinc-50 pb-2">
+                      <span className="text-zinc-400 font-bold uppercase text-[9px]">Desconto</span>
+                      <span className="font-black text-red-500">- R$ {selectedOS.discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-lg font-black border-t-2 pt-2">
-                    <span>TOTAL:</span>
-                    <span>R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between w-64 items-center bg-zinc-900 p-4 rounded-2xl text-white">
+                    <span className="text-zinc-400 font-black uppercase tracking-[0.2em] text-[9px]">Total da Nota</span>
+                    <span className="text-3xl font-black">R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-20 flex justify-between gap-10">
-                <div className="flex-1 text-center">
-                  <div className="border-t border-black mb-1"></div>
-                  <p className="text-[10px] uppercase font-bold">Assinatura do Cliente</p>
+              <div className="mt-20 flex justify-between items-center text-[9px] text-zinc-400 uppercase tracking-widest font-black px-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-56 h-px bg-zinc-200 mb-2"></div>
+                  Assinatura do Cliente
                 </div>
-                <div className="flex-1 text-center">
-                  <div className="border-t border-black mb-1"></div>
-                  <p className="text-[10px] uppercase font-bold">Responsável Técnico</p>
+                <div className="flex flex-col items-center">
+                  <div className="w-56 h-px bg-zinc-200 mb-2"></div>
+                  Responsável Técnico
                 </div>
               </div>
             </div>
@@ -226,16 +247,16 @@ const ServiceOrders: React.FC = () => {
             <div className="mt-12 flex gap-4 no-print">
               <button 
                 onClick={() => window.print()} 
-                className="flex-1 bg-black text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3"
+                className="flex-1 bg-zinc-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl"
               >
                 <Printer size={20} />
                 Reimprimir
               </button>
               <button 
                 onClick={() => setSelectedOS(null)}
-                className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-sm uppercase tracking-widest"
+                className="flex-1 bg-zinc-100 text-zinc-900 py-5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-200 transition-all shadow-lg"
               >
-                Fechar
+                Fechar Visualização
               </button>
             </div>
           </div>
