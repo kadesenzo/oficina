@@ -27,7 +27,7 @@ const ServiceOrders: React.FC = () => {
   }, []);
 
   const handleDelete = (id: string) => {
-    if (confirm("Deseja realmente excluir esta nota permanentemente?")) {
+    if (confirm("Deseja realmente excluir esta nota?")) {
       const updated = orders.filter(o => o.id !== id);
       setOrders(updated);
       localStorage.setItem('kaenpro_orders', JSON.stringify(updated));
@@ -44,6 +44,8 @@ const ServiceOrders: React.FC = () => {
     o.vehiclePlate.includes(searchTerm) || 
     o.osNumber.includes(searchTerm)
   ).reverse();
+
+  const isLongNote = selectedOS && selectedOS.items.length > 8;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
@@ -91,10 +93,9 @@ const ServiceOrders: React.FC = () => {
         ))}
       </div>
 
-      {/* MODAL DE VISUALIZAÇÃO - OTIMIZADO PARA IMPRESSÃO A4 */}
       {selectedOS && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-0 md:p-4 overflow-y-auto no-scrollbar no-print">
-          <div className="bg-white w-full max-w-[210mm] min-h-screen md:min-h-0 md:rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative">
+          <div className={`bg-white w-full max-w-[210mm] min-h-screen md:min-h-0 md:rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative flex flex-col ${isLongNote ? 'print-compact' : ''}`}>
             
             <div className="no-print bg-zinc-100 p-4 flex justify-between items-center border-b border-zinc-200 sticky top-0 z-[210]">
               <div className="flex gap-2">
@@ -105,90 +106,86 @@ const ServiceOrders: React.FC = () => {
                   <Share2 size={16} /> WhatsApp
                 </button>
               </div>
-              <button onClick={() => setSelectedOS(null)} className="p-2 text-zinc-400 hover:text-zinc-900"><X size={28} /></button>
+              <button onClick={() => setSelectedOS(null)} className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors"><X size={32} /></button>
             </div>
 
-            <div id="print-area-viewer" className="p-[10mm] sm:p-[15mm] text-zinc-900 flex flex-col min-h-full">
-              {/* Header */}
-              <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-zinc-100 print-block">
+            <div id="print-area-viewer" className="p-[10mm] sm:p-[15mm] text-zinc-900 flex flex-col flex-1 bg-white">
+              <div className="flex justify-between items-start mb-8 pb-4 border-b-2 border-zinc-100 print-header">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center text-white">
                     <Wrench size={24} />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-black tracking-tighter">KAEN <span className="text-zinc-900">MECÂNICA</span></h1>
+                    <h1 className="text-2xl font-black tracking-tighter uppercase">KAEN <span className="text-zinc-500">MECÂNICA</span></h1>
                     <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em]">Rua Joaquim Marques Alves, 765</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">NOTA Nº</p>
+                  <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">OS Nº</p>
                   <p className="text-xl font-black">{selectedOS.osNumber}</p>
                   <p className="text-[10px] font-bold text-zinc-500">{new Date(selectedOS.createdAt).toLocaleDateString('pt-BR')}</p>
                 </div>
               </div>
 
-              {/* Info Cards */}
-              <div className="grid grid-cols-2 gap-4 mb-6 print-block">
-                <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                  <h5 className="text-[8px] font-black uppercase text-zinc-400 tracking-widest mb-1">Proprietário</h5>
-                  <p className="font-black text-sm">{selectedOS.clientName}</p>
+              <div className="grid grid-cols-2 gap-4 mb-8 print-info-cards">
+                <div className="bg-zinc-50 p-5 rounded-3xl border border-zinc-100">
+                  <h5 className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-1">Proprietário</h5>
+                  <p className="font-black text-base">{selectedOS.clientName}</p>
                 </div>
-                <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                  <h5 className="text-[8px] font-black uppercase text-zinc-400 tracking-widest mb-1">Veículo / KM</h5>
+                <div className="bg-zinc-50 p-5 rounded-3xl border border-zinc-100">
+                  <h5 className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-1">Veículo / KM</h5>
                   <p className="font-black text-sm uppercase">{selectedOS.vehiclePlate} • {selectedOS.vehicleModel}</p>
-                  <p className="text-[10px] font-black text-zinc-400">{selectedOS.vehicleKm} km</p>
+                  <p className="text-base font-black text-zinc-900">{selectedOS.vehicleKm} km</p>
                 </div>
               </div>
 
-              {/* Tabela de Itens */}
               <div className="flex-1">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead className="border-b-2 border-zinc-100">
                     <tr className="text-zinc-400 uppercase font-black text-[9px] tracking-widest">
-                      <th className="py-2 px-1">Descrição</th>
-                      <th className="py-2 px-1 text-center w-12">Qtd</th>
-                      <th className="py-2 px-1 text-right w-24">V. Unit</th>
-                      <th className="py-2 px-1 text-right w-24">V. Total</th>
+                      <th className="py-3 px-1">Descrição</th>
+                      <th className="py-3 px-1 text-center w-12">Qtd</th>
+                      <th className="py-3 px-1 text-right w-24">V. Unit</th>
+                      <th className="py-3 px-1 text-right w-24">V. Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-50">
                     {selectedOS.items.map((item, i) => (
                       <tr key={i} className="print:text-[10px]">
-                        <td className="py-2 px-1 font-semibold">{item.description}</td>
-                        <td className="py-2 px-1 text-center text-zinc-500">{item.quantity}</td>
-                        <td className="py-2 px-1 text-right text-zinc-500">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-2 px-1 text-right font-bold">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-3 px-1 font-bold">{item.description}</td>
+                        <td className="py-3 px-1 text-center text-zinc-500">{item.quantity}</td>
+                        <td className="py-3 px-1 text-right text-zinc-500">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-3 px-1 text-right font-black">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
                     {selectedOS.laborValue > 0 && (
-                      <tr className="bg-zinc-50/50 print:text-[10px]">
-                        <td className="py-2 px-1 font-bold">Mão de Obra Especializada</td>
-                        <td className="py-2 px-1 text-center">01</td>
-                        <td className="py-2 px-1 text-right">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-2 px-1 text-right font-bold">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                      <tr className="bg-zinc-50/50">
+                        <td className="py-3 px-1 font-bold">Mão de Obra Técnica</td>
+                        <td className="py-3 px-1 text-center font-black">01</td>
+                        <td className="py-3 px-1 text-right">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-3 px-1 text-right font-black">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
 
-              {/* Rodapé e Totais */}
-              <div className="mt-8 pt-6 border-t-2 border-zinc-100 print-block">
+              <div className="mt-8 pt-8 border-t-2 border-zinc-100 print-block">
                 <div className="flex justify-between items-end">
                   <div className="text-[9px] text-zinc-400 font-bold uppercase">
                     <div className="mt-8 border-t border-zinc-200 pt-1 w-48 text-center">Assinatura Técnica</div>
                   </div>
-                  <div className="w-full max-w-[200px]">
-                    <div className="bg-zinc-100 print:bg-white print:border-2 print:border-zinc-100 p-4 rounded-2xl text-right">
-                      <p className="text-[9px] font-black uppercase text-zinc-400 mb-1">Total</p>
-                      <p className="text-3xl font-black tracking-tighter">R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <div className="w-full max-w-[240px]">
+                    <div className="bg-zinc-100 print:border-4 print:border-zinc-50 p-6 rounded-[2rem] text-right">
+                      <p className="text-[9px] font-black uppercase text-zinc-400 mb-1">Total da Nota</p>
+                      <p className="text-3xl font-black text-zinc-900 leading-none">R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-12 text-center text-[8px] font-black text-zinc-300 uppercase tracking-[0.4em] print-block">
-                Kaen Mecânica • Confiança é o nosso motor
+              <div className="mt-12 text-center text-[9px] font-black text-zinc-300 uppercase tracking-[0.5em]">
+                Kaen Mecânica • Confiança em cada km
               </div>
             </div>
           </div>

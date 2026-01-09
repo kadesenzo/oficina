@@ -56,24 +56,41 @@
                 border-collapse: collapse !important;
             }
             thead {
-                display: table-header-group !important; /* Repeats header on new pages */
+                display: table-header-group !important;
             }
             tr {
                 page-break-inside: avoid !important;
             }
             
-            /* Avoid splitting important blocks */
+            /* Compact Printing for many items */
+            .print-compact table {
+                font-size: 10px !important;
+            }
+            .print-compact th, .print-compact td {
+                padding-top: 4px !important;
+                padding-bottom: 4px !important;
+            }
+            .print-compact .print-header {
+                margin-bottom: 12px !important;
+                padding-bottom: 8px !important;
+            }
+            .print-compact .print-info-cards {
+                margin-bottom: 12px !important;
+                gap: 8px !important;
+            }
+            .print-compact .print-info-cards > div {
+                padding: 10px !important;
+            }
+
             .print-block {
                 page-break-inside: avoid !important;
             }
 
-            /* Global print text adjustments */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
             
-            /* Reset colors for accessibility on paper */
             .bg-zinc-950, .bg-zinc-900, .bg-zinc-100, .bg-zinc-50 {
                 background-color: transparent !important;
                 border-color: #eee !important;
