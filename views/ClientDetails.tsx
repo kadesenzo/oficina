@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   User, 
   ChevronLeft, 
-  // Fix: Added missing ChevronRight and FileText imports
   ChevronRight,
   FileText,
   Phone, 
@@ -18,11 +17,16 @@ import {
   Info,
   Calendar,
   CreditCard,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
-import { Client, Vehicle, ServiceOrder, OSStatus } from '../types';
+import { Client, Vehicle, ServiceOrder } from '../types';
 
-const ClientDetails: React.FC = () => {
+interface ClientDetailsProps {
+  role: 'Dono' | 'Funcionário' | 'Recepção';
+}
+
+const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
@@ -56,6 +60,33 @@ const ClientDetails: React.FC = () => {
       </div>
     );
   }
+
+  const handleDeleteClient = () => {
+    if (role !== 'Dono') {
+      alert("Acesso Negado: Apenas o Dono pode excluir clientes.");
+      return;
+    }
+
+    const confirmMessage = `⚠️ ATENÇÃO: Tem certeza que deseja excluir o cliente ${client.name}?\n\nTODAS as notas (Ordens de Serviço) e TODOS os veículos vinculados a este cliente serão apagados PERMANENTEMENTE.\n\nEsta ação não pode ser desfeita.`;
+    
+    if (confirm(confirmMessage)) {
+      const savedClients = JSON.parse(localStorage.getItem('kaenpro_clients') || '[]');
+      const updatedClients = savedClients.filter((c: Client) => c.id !== client.id);
+      
+      const savedVehicles = JSON.parse(localStorage.getItem('kaenpro_vehicles') || '[]');
+      const updatedVehicles = savedVehicles.filter((v: Vehicle) => v.clientId !== client.id);
+      
+      const savedOrders = JSON.parse(localStorage.getItem('kaenpro_orders') || '[]');
+      const updatedOrders = savedOrders.filter((o: ServiceOrder) => o.clientId !== client.id);
+
+      localStorage.setItem('kaenpro_clients', JSON.stringify(updatedClients));
+      localStorage.setItem('kaenpro_vehicles', JSON.stringify(updatedVehicles));
+      localStorage.setItem('kaenpro_orders', JSON.stringify(updatedOrders));
+      
+      alert("Cliente e todos os dados vinculados removidos com sucesso.");
+      navigate('/clients');
+    }
+  };
 
   const totalSpent = orders.reduce((acc, curr) => acc + curr.totalValue, 0);
   
@@ -249,15 +280,27 @@ const ClientDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Internal Observations */}
-      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2.5rem] shadow-xl">
-        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <Info size={14} className="text-[#A32121]" /> 
-          Prontuário Técnico e Observações Gerais
-        </h3>
-        <p className="text-sm text-zinc-400 leading-relaxed">
-          {client.observations || "Nenhuma observação comportamental ou técnica registrada. Cliente prefere contato via WhatsApp para orçamentos rápidos."}
-        </p>
+      {/* Internal Observations & Delete Profile Section */}
+      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+        <div className="flex-1">
+          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <Info size={14} className="text-[#A32121]" /> 
+            Prontuário Técnico e Observações Gerais
+          </h3>
+          <p className="text-sm text-zinc-400 leading-relaxed italic">
+            {client.observations || "Nenhuma observação comportamental ou técnica registrada. Cliente prefere contato via WhatsApp para orçamentos rápidos."}
+          </p>
+        </div>
+        
+        {role === 'Dono' && (
+          <button 
+            onClick={handleDeleteClient}
+            className="shrink-0 flex items-center gap-2 bg-zinc-950 border border-zinc-800 text-zinc-700 hover:text-red-500 hover:border-red-500/50 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+          >
+            <Trash2 size={16} />
+            Excluir Perfil Permanente
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Users, Search, UserPlus, Phone, FileText, ChevronRight, X, User, MessageCircle, Copy } from 'lucide-react';
+import { Users, Search, UserPlus, Phone, FileText, ChevronRight, X, User, MessageCircle, Copy, Trash2, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Client, Vehicle } from '../types';
+import { Client, Vehicle, ServiceOrder } from '../types';
 
-const Clients: React.FC = () => {
+interface ClientsProps {
+  role: 'Dono' | 'Funcionário' | 'Recepção';
+}
+
+const Clients: React.FC<ClientsProps> = ({ role }) => {
   const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +69,37 @@ const Clients: React.FC = () => {
     setNewVehicle({ plate: '', model: '', brand: '', year: '', km: '' });
   };
 
+  const handleDeleteClient = (clientId: string, clientName: string) => {
+    if (role !== 'Dono') {
+      alert("Acesso Negado: Apenas o Administrador/Dono pode excluir clientes.");
+      return;
+    }
+
+    const confirmMessage = `⚠️ ATENÇÃO: Tem certeza que deseja excluir o cliente ${clientName}?\n\nTODAS as notas (Ordens de Serviço) e TODOS os veículos vinculados a este cliente serão apagados PERMANENTEMENTE.\n\nEsta ação não pode ser desfeita.`;
+    
+    if (confirm(confirmMessage)) {
+      // 1. Filter Clients
+      const updatedClients = clients.filter(c => c.id !== clientId);
+      
+      // 2. Filter Vehicles linked to this client
+      const savedVehicles = JSON.parse(localStorage.getItem('kaenpro_vehicles') || '[]');
+      const updatedVehicles = savedVehicles.filter((v: Vehicle) => v.clientId !== clientId);
+      
+      // 3. Filter Orders linked to this client
+      const savedOrders = JSON.parse(localStorage.getItem('kaenpro_orders') || '[]');
+      const updatedOrders = savedOrders.filter((o: ServiceOrder) => o.clientId !== clientId);
+
+      // 4. Update LocalStorage
+      localStorage.setItem('kaenpro_clients', JSON.stringify(updatedClients));
+      localStorage.setItem('kaenpro_vehicles', JSON.stringify(updatedVehicles));
+      localStorage.setItem('kaenpro_orders', JSON.stringify(updatedOrders));
+      
+      // 5. Update State
+      setClients(updatedClients);
+      alert(`Cliente ${clientName} e todos os seus dados vinculados foram removidos com sucesso.`);
+    }
+  };
+
   const copyPhone = (phone: string) => {
     navigator.clipboard.writeText(phone);
     alert("Número copiado!");
@@ -116,7 +151,7 @@ const Clients: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map(c => (
-            <div key={c.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-[#A32121]/50 transition-all group relative overflow-hidden">
+            <div key={c.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-zinc-700 transition-all group relative overflow-hidden">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 group-hover:text-[#A32121] transition-colors">
@@ -127,6 +162,15 @@ const Clients: React.FC = () => {
                     <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{c.document || 'Sem CPF/CNPJ'}</p>
                   </div>
                 </div>
+                {role === 'Dono' && (
+                  <button 
+                    onClick={() => handleDeleteClient(c.id, c.name)}
+                    className="p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                    title="Excluir Cliente Permanentemente"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
               </div>
 
               <div className="bg-zinc-950/50 border border-zinc-800/50 rounded-2xl p-4 mb-6">

@@ -67,11 +67,11 @@ const App: React.FC = () => {
         />
         <Route 
           path="/clients" 
-          element={isAuthenticated ? <PrivateLayout><Clients /></PrivateLayout> : <Navigate to="/login" />} 
+          element={isAuthenticated ? <PrivateLayout><Clients role={userRole} /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/clients/:id" 
-          element={isAuthenticated ? <PrivateLayout><ClientDetails /></PrivateLayout> : <Navigate to="/login" />} 
+          element={isAuthenticated ? <PrivateLayout><ClientDetails role={userRole} /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/vehicles" 
