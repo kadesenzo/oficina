@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from './views/LandingPage';
 import LoginPage from './views/LoginPage';
 import Dashboard from './views/Dashboard';
 import ServiceOrders from './views/ServiceOrders';
@@ -34,50 +35,55 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
+        {/* Site Público */}
+        <Route path="/" element={<LandingPage onLogin={() => {}} />} />
+        
+        {/* Login - Redireciona se já logado */}
         <Route 
-          path="/" 
+          path="/login" 
           element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage onLogin={() => setIsAuthenticated(true)} />} 
         />
         
+        {/* Sistema Interno - Protegido */}
         <Route 
           path="/dashboard" 
-          element={isAuthenticated ? <PrivateLayout><Dashboard /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><Dashboard /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/orders" 
-          element={isAuthenticated ? <PrivateLayout><ServiceOrders /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><ServiceOrders /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/orders/new" 
-          element={isAuthenticated ? <PrivateLayout><NewServiceOrder /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><NewServiceOrder /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/billing" 
-          element={isAuthenticated ? <PrivateLayout><Billing /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><Billing /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/inventory" 
-          element={isAuthenticated ? <PrivateLayout><Inventory /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><Inventory /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/clients" 
-          element={isAuthenticated ? <PrivateLayout><Clients /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><Clients /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/clients/:id" 
-          element={isAuthenticated ? <PrivateLayout><ClientDetails /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><ClientDetails /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/vehicles" 
-          element={isAuthenticated ? <PrivateLayout><Vehicles /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><Vehicles /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/vehicles/:id" 
-          element={isAuthenticated ? <PrivateLayout><VehicleDetails /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><VehicleDetails /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/employees" 
-          element={isAuthenticated ? <PrivateLayout><Employees /></PrivateLayout> : <Navigate to="/" />} 
+          element={isAuthenticated ? <PrivateLayout><Employees /></PrivateLayout> : <Navigate to="/login" />} 
         />
         
         <Route path="*" element={<Navigate to="/" />} />
