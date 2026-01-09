@@ -43,9 +43,10 @@ const ServiceOrders: React.FC = () => {
     message += `-----------------------------\n`;
     message += `*Cliente:* ${os.clientName}\n`;
     message += `*Veículo:* ${os.vehicleModel} (${os.vehiclePlate})\n`;
+    message += `*KM:* ${os.vehicleKm || '---'} km\n`;
     message += `*TOTAL: R$ ${os.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}*\n`;
     message += `-----------------------------\n`;
-    message += `Verifique sua nota completa em nosso sistema.`;
+    message += `Acesse sua oficina de confiança.`;
     
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
@@ -147,10 +148,10 @@ const ServiceOrders: React.FC = () => {
       {/* MODAL DE VISUALIZAÇÃO DE NOTA DIGITAL */}
       {selectedOS && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4 overflow-y-auto no-scrollbar no-print">
-          <div className="bg-white w-full max-w-2xl min-h-[90vh] my-auto rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative overflow-hidden">
+          <div className="bg-white w-full max-w-[210mm] min-h-[297mm] my-auto rounded-none md:rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative overflow-hidden">
             
             {/* Action Bar (No Print) */}
-            <div className="no-print bg-zinc-100 p-4 flex justify-between items-center border-b border-zinc-200">
+            <div className="no-print bg-zinc-100 p-4 flex justify-between items-center border-b border-zinc-200 sticky top-0 z-[210]">
                 <div className="flex gap-2">
                     <button onClick={() => window.print()} className="bg-zinc-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 hover:bg-black transition-all">
                         <Printer size={16} /> Imprimir / PDF
@@ -164,17 +165,17 @@ const ServiceOrders: React.FC = () => {
                 </button>
             </div>
 
-            <div id="print-area-viewer" className="p-10">
+            <div id="print-area-viewer" className="p-[15mm] text-zinc-900">
               {/* Header */}
               <div className="flex justify-between items-start mb-10 pb-8 border-b-2 border-zinc-100">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[#A32121] rounded-2xl flex items-center justify-center text-white shadow-xl">
+                  <div className="w-16 h-16 bg-[#000] rounded-2xl flex items-center justify-center text-white shadow-xl">
                     <Wrench size={32} />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAEN <span className="text-[#A32121]">MECÂNICA</span></h1>
+                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAEN <span className="text-[#000]">MECÂNICA</span></h1>
                     <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.3em] mt-0.5">Mecânica de Precisão</p>
-                    <div className="mt-2 text-[9px] text-zinc-500 font-bold space-y-0.5 uppercase">
+                    <div className="mt-2 text-[9px] text-zinc-600 font-bold space-y-0.5 uppercase">
                         <p>Rua Joaquim Marques Alves, 765</p>
                     </div>
                   </div>
@@ -199,8 +200,16 @@ const ServiceOrders: React.FC = () => {
                 </div>
                 <div className="bg-zinc-50 p-6 rounded-3xl border border-zinc-100">
                   <h5 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-3 border-b border-zinc-200 pb-2">Veículo</h5>
-                  <p className="font-black text-lg text-[#A32121] uppercase tracking-tighter">{selectedOS.vehiclePlate}</p>
-                  <p className="text-sm font-black text-zinc-900 uppercase">{selectedOS.vehicleModel}</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                        <p className="font-black text-lg text-zinc-900 uppercase tracking-tighter">{selectedOS.vehiclePlate}</p>
+                        <p className="text-sm font-black text-zinc-900 uppercase">{selectedOS.vehicleModel}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">KM Registrado</p>
+                        <p className="text-lg font-black text-zinc-900">{selectedOS.vehicleKm ? `${parseFloat(selectedOS.vehicleKm).toLocaleString('pt-BR')} km` : '---'}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -214,7 +223,7 @@ const ServiceOrders: React.FC = () => {
 
               {/* Table */}
               <div className="mb-10">
-                <table className="w-full text-left text-sm">
+                <table className="w-full text-left text-sm border-collapse">
                   <thead>
                     <tr className="border-b-2 border-zinc-100 text-zinc-400 uppercase font-black tracking-widest text-[10px]">
                       <th className="py-4 px-2">Descrição Técnica</th>
@@ -226,21 +235,21 @@ const ServiceOrders: React.FC = () => {
                   <tbody className="divide-y divide-zinc-50">
                     {selectedOS.items.map((item, i) => (
                       <tr key={i} className="text-zinc-700">
-                        <td className="py-5 px-2 font-bold flex items-center gap-2">
+                        <td className="py-4 px-2 font-bold flex items-center gap-2">
                             {item.type === 'PART' ? <Package size={14} className="text-zinc-300" /> : <Wrench size={14} className="text-zinc-300" />}
                             {item.description}
                         </td>
-                        <td className="py-5 px-2 text-center font-black text-zinc-400">{item.quantity}</td>
-                        <td className="py-5 px-2 text-right text-zinc-500">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-5 px-2 text-right font-black text-zinc-900">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-center font-black text-zinc-400">{item.quantity}</td>
+                        <td className="py-4 px-2 text-right text-zinc-500">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-right font-black text-zinc-900">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
                     {selectedOS.laborValue > 0 && (
                       <tr className="bg-zinc-50/50">
-                        <td className="py-5 px-2 font-black text-zinc-900">Mão de Obra Especializada</td>
-                        <td className="py-5 px-2 text-center font-black text-zinc-400">01</td>
-                        <td className="py-5 px-2 text-right text-zinc-500">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-5 px-2 text-right font-black text-zinc-900">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 font-black text-zinc-900">Mão de Obra Especializada</td>
+                        <td className="py-4 px-2 text-center font-black text-zinc-400">01</td>
+                        <td className="py-4 px-2 text-right text-zinc-500">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-right font-black text-zinc-900">R$ {selectedOS.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     )}
                   </tbody>
@@ -248,9 +257,9 @@ const ServiceOrders: React.FC = () => {
               </div>
 
               {/* Totals */}
-              <div className="flex justify-between items-end pt-10 border-t-2 border-zinc-100">
+              <div className="flex justify-between items-end pt-10 border-t-2 border-zinc-100 mt-auto">
                 <div className="flex flex-col gap-6">
-                  <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block border ${selectedOS.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                  <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block border ${selectedOS.paymentStatus === PaymentStatus.PAGO ? 'bg-zinc-50 text-emerald-600 border-emerald-100' : 'bg-zinc-50 text-amber-600 border-amber-100'}`}>
                     STATUS: {selectedOS.paymentStatus.toUpperCase()}
                   </div>
                   <div className="flex flex-col items-center">
@@ -263,14 +272,14 @@ const ServiceOrders: React.FC = () => {
                   {selectedOS.discount > 0 && (
                     <div className="flex justify-between w-full text-xs border-b border-zinc-50 pb-2 px-2">
                       <span className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Desconto</span>
-                      <span className="font-black text-[#A32121]">- R$ {selectedOS.discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <span className="font-black text-zinc-900">- R$ {selectedOS.discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     </div>
                   )}
-                  <div className="w-full bg-zinc-900 p-6 rounded-[1.5rem] text-white shadow-2xl">
+                  <div className="w-full bg-zinc-100 p-6 rounded-[1.5rem] border border-zinc-200">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px]">Total Final</span>
                     </div>
-                    <span className="text-4xl font-black block tracking-tighter">R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="text-4xl font-black block tracking-tighter text-zinc-900">R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>

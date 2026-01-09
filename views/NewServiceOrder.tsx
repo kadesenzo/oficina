@@ -72,6 +72,11 @@ const NewServiceOrder: React.FC = () => {
       return;
     }
 
+    if (!vehicleInfo.km) {
+      alert("Por favor, informe a quilometragem (KM) do veículo.");
+      return;
+    }
+
     if (items.length === 0 && labor === 0) {
       alert("Adicione pelo menos um item ou valor de mão de obra.");
       return;
@@ -85,6 +90,7 @@ const NewServiceOrder: React.FC = () => {
       vehicleId: 'new',
       vehiclePlate: vehicleInfo.plate.toUpperCase(),
       vehicleModel: vehicleInfo.model,
+      vehicleKm: vehicleInfo.km, // Adicionado campo de KM
       problem,
       items,
       laborValue: labor,
@@ -99,17 +105,13 @@ const NewServiceOrder: React.FC = () => {
     const existing = JSON.parse(localStorage.getItem('kaenpro_orders') || '[]');
     localStorage.setItem('kaenpro_orders', JSON.stringify([...existing, newOs]));
 
-    // Stock deduction
-    const updatedParts = [...parts];
-    items.forEach(item => {
-      if (item.type === 'PART') {
-        const partIdx = updatedParts.findIndex(p => p.name.toLowerCase() === item.description.toLowerCase());
-        if (partIdx !== -1) {
-          updatedParts[partIdx].stock -= item.quantity;
-        }
-      }
-    });
-    localStorage.setItem('kaenpro_parts', JSON.stringify(updatedParts));
+    // Atualiza KM no veículo persistido se houver placa correspondente
+    const savedVehicles = JSON.parse(localStorage.getItem('kaenpro_vehicles') || '[]');
+    const vehicleIdx = savedVehicles.findIndex((v: any) => v.plate === vehicleInfo.plate.toUpperCase());
+    if (vehicleIdx !== -1) {
+      savedVehicles[vehicleIdx].km = parseFloat(vehicleInfo.km);
+      localStorage.setItem('kaenpro_vehicles', JSON.stringify(savedVehicles));
+    }
 
     setOsData(newOs);
     setShowInvoice(true);
@@ -122,6 +124,7 @@ const NewServiceOrder: React.FC = () => {
     message += `-----------------------------\n`;
     message += `*Cliente:* ${osData.clientName}\n`;
     message += `*Veículo:* ${osData.vehicleModel} (${osData.vehiclePlate})\n`;
+    message += `*KM:* ${osData.vehicleKm} km\n`;
     message += `*Data:* ${new Date(osData.createdAt).toLocaleDateString('pt-BR')}\n`;
     message += `-----------------------------\n`;
     message += `*ITENS / SERVIÇOS:*\n`;
@@ -176,7 +179,7 @@ const NewServiceOrder: React.FC = () => {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Placa do Veículo</label>
                   <input 
@@ -195,6 +198,16 @@ const NewServiceOrder: React.FC = () => {
                     onChange={(e) => setVehicleInfo({...vehicleInfo, model: e.target.value})}
                     placeholder="Ex: Corolla XEI" 
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 focus:ring-1 focus:ring-[#A32121] outline-none text-white" 
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-[#A32121] uppercase tracking-widest ml-1">KM Atual *</label>
+                  <input 
+                    type="number" 
+                    value={vehicleInfo.km}
+                    onChange={(e) => setVehicleInfo({...vehicleInfo, km: e.target.value})}
+                    placeholder="Ex: 123456" 
+                    className="w-full bg-zinc-950 border border-[#A32121]/50 border-2 rounded-xl px-4 py-3 focus:ring-1 focus:ring-[#A32121] outline-none text-white font-black" 
                   />
                 </div>
               </div>
@@ -328,10 +341,10 @@ const NewServiceOrder: React.FC = () => {
       {/* MODAL DA NOTA DIGITAL PROFISSIONAL */}
       {showInvoice && osData && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4 overflow-y-auto no-scrollbar">
-          <div className="bg-white w-full max-w-2xl min-h-[90vh] my-auto rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative overflow-hidden">
+          <div className="bg-white w-full max-w-[210mm] min-h-[297mm] my-auto rounded-none md:rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative overflow-hidden">
             
             {/* Action Bar (No Print) */}
-            <div className="no-print bg-zinc-100 p-4 flex justify-between items-center border-b border-zinc-200">
+            <div className="no-print bg-zinc-100 p-4 flex justify-between items-center border-b border-zinc-200 sticky top-0 z-[210]">
                 <div className="flex gap-2">
                     <button onClick={() => window.print()} className="bg-zinc-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 hover:bg-black transition-all">
                         <Printer size={16} /> Imprimir / PDF
@@ -345,17 +358,17 @@ const NewServiceOrder: React.FC = () => {
                 </button>
             </div>
 
-            <div id="print-area" className="p-10">
+            <div id="print-area" className="p-[15mm] text-zinc-900">
               {/* Header */}
               <div className="flex justify-between items-start mb-10 pb-8 border-b-2 border-zinc-100">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[#A32121] rounded-2xl flex items-center justify-center text-white shadow-xl">
+                  <div className="w-16 h-16 bg-[#000] rounded-2xl flex items-center justify-center text-white">
                     <Wrench size={32} />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAEN <span className="text-[#A32121]">MECÂNICA</span></h1>
+                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAEN <span className="text-[#000]">MECÂNICA</span></h1>
                     <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.3em] mt-0.5">Mecânica de Precisão</p>
-                    <div className="mt-2 text-[9px] text-zinc-500 font-bold space-y-0.5 uppercase">
+                    <div className="mt-2 text-[9px] text-zinc-600 font-bold space-y-0.5 uppercase">
                         <p>Rua Joaquim Marques Alves, 765</p>
                     </div>
                   </div>
@@ -383,12 +396,12 @@ const NewServiceOrder: React.FC = () => {
                   <h5 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-3 border-b border-zinc-200 pb-2">Veículo</h5>
                   <div className="flex justify-between items-start">
                     <div>
-                        <p className="font-black text-lg text-[#A32121] uppercase tracking-tighter">{osData.vehiclePlate}</p>
+                        <p className="font-black text-lg text-zinc-900 uppercase tracking-tighter">{osData.vehiclePlate}</p>
                         <p className="text-sm font-black text-zinc-900 uppercase">{osData.vehicleModel}</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">KM Atual</p>
-                        <p className="text-sm font-black text-zinc-900">00.000</p>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">KM Registrado</p>
+                        <p className="text-lg font-black text-zinc-900">{osData.vehicleKm ? `${parseFloat(osData.vehicleKm).toLocaleString('pt-BR')} km` : '---'}</p>
                     </div>
                   </div>
                 </div>
@@ -396,41 +409,41 @@ const NewServiceOrder: React.FC = () => {
 
               {/* Problem/Service Description */}
               <div className="mb-10 p-6 bg-zinc-50/50 rounded-3xl border border-zinc-100 border-dashed">
-                <h5 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Serviço Solicitado / Diagnóstico</h5>
+                <h5 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Relato / Diagnóstico</h5>
                 <p className="text-sm text-zinc-700 leading-relaxed font-medium">
-                  {osData.problem || "Revisão preventiva e verificação de sistemas conforme solicitação do cliente."}
+                  {osData.problem || "Serviços de manutenção preventiva/corretiva realizados conforme inspeção."}
                 </p>
               </div>
 
               {/* Table */}
               <div className="mb-10">
-                <table className="w-full text-left text-sm">
+                <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="border-b-2 border-zinc-100 text-zinc-400 uppercase font-black tracking-widest text-[10px]">
+                    <tr className="border-b-2 border-zinc-200 text-zinc-400 uppercase font-black tracking-widest text-[10px]">
                       <th className="py-4 px-2">Descrição Técnica</th>
                       <th className="py-4 px-2 text-center">Qtd</th>
                       <th className="py-4 px-2 text-right">V. Unitário</th>
                       <th className="py-4 px-2 text-right">Subtotal</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-50">
+                  <tbody className="divide-y divide-zinc-100">
                     {osData.items.map((item, i) => (
                       <tr key={i} className="text-zinc-700">
-                        <td className="py-5 px-2 font-bold flex items-center gap-2">
+                        <td className="py-4 px-2 font-bold flex items-center gap-2">
                             {item.type === 'PART' ? <Package size={14} className="text-zinc-300" /> : <Wrench size={14} className="text-zinc-300" />}
                             {item.description}
                         </td>
-                        <td className="py-5 px-2 text-center font-black text-zinc-400">{item.quantity}</td>
-                        <td className="py-5 px-2 text-right text-zinc-500">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-5 px-2 text-right font-black text-zinc-900">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-center font-black text-zinc-400">{item.quantity}</td>
+                        <td className="py-4 px-2 text-right text-zinc-500">R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-right font-black text-zinc-900">R$ {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
                     {osData.laborValue > 0 && (
-                      <tr className="bg-zinc-50/50">
-                        <td className="py-5 px-2 font-black text-zinc-900">Mão de Obra Especializada</td>
-                        <td className="py-5 px-2 text-center font-black text-zinc-400">01</td>
-                        <td className="py-5 px-2 text-right text-zinc-500">R$ {osData.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-5 px-2 text-right font-black text-zinc-900">R$ {osData.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                      <tr className="bg-zinc-50/30">
+                        <td className="py-4 px-2 font-black text-zinc-900">Mão de Obra Especializada</td>
+                        <td className="py-4 px-2 text-center font-black text-zinc-400">01</td>
+                        <td className="py-4 px-2 text-right text-zinc-500">R$ {osData.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 px-2 text-right font-black text-zinc-900">R$ {osData.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     )}
                   </tbody>
@@ -438,15 +451,15 @@ const NewServiceOrder: React.FC = () => {
               </div>
 
               {/* Totals */}
-              <div className="flex justify-between items-end pt-10 border-t-2 border-zinc-100">
+              <div className="flex justify-between items-end pt-10 border-t-2 border-zinc-100 mt-auto">
                 <div className="flex flex-col gap-6">
-                  <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block border ${osData.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                    STATUS: {osData.paymentStatus.toUpperCase()}
+                  <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block border ${osData.paymentStatus === PaymentStatus.PAGO ? 'bg-zinc-50 text-emerald-600 border-emerald-100' : 'bg-zinc-50 text-amber-600 border-amber-100'}`}>
+                    PAGAMENTO: {osData.paymentStatus.toUpperCase()}
                   </div>
                   <div className="space-y-4">
                       <div className="flex flex-col items-center">
                         <div className="w-56 h-px bg-zinc-200 mb-2"></div>
-                        <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest">Assinatura do Responsável</p>
+                        <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest">Assinatura do Proprietário</p>
                       </div>
                   </div>
                 </div>
@@ -455,27 +468,23 @@ const NewServiceOrder: React.FC = () => {
                   {osData.discount > 0 && (
                     <div className="flex justify-between w-full text-xs border-b border-zinc-50 pb-2 px-2">
                       <span className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Desconto Aplicado</span>
-                      <span className="font-black text-[#A32121]">- R$ {osData.discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <span className="font-black text-zinc-900">- R$ {osData.discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     </div>
                   )}
-                  <div className="w-full bg-zinc-900 p-6 rounded-[1.5rem] text-white shadow-2xl">
+                  <div className="w-full bg-zinc-100 p-6 rounded-[1.5rem] border border-zinc-200">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px]">Total Líquido</span>
-                        <div className="w-2 h-2 bg-[#A32121] rounded-full animate-pulse"></div>
                     </div>
-                    <span className="text-4xl font-black block tracking-tighter">R$ {osData.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="text-4xl font-black block tracking-tighter text-zinc-900">R$ {osData.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <p className="text-[9px] text-zinc-400 font-bold text-right italic max-w-xs mt-2">
-                    * Garantia de 90 dias nos serviços prestados. Peças conforme garantia do fabricante.
+                  <p className="text-[9px] text-zinc-400 font-bold text-right italic max-w-xs mt-2 uppercase tracking-widest">
+                    * Garantia de 90 dias nos serviços prestados.
                   </p>
                 </div>
               </div>
 
-              {/* Footer Stamp */}
-              <div className="mt-16 text-center">
-                  <div className="inline-block border-2 border-[#A32121]/10 rounded-full px-8 py-2">
-                      <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em]">Kaen Mecânica • Qualidade e Confiança</p>
-                  </div>
+              <div className="mt-16 text-center border-t border-zinc-100 pt-4">
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.5em]">Kaen Mecânica • Qualidade e Confiança</p>
               </div>
             </div>
           </div>

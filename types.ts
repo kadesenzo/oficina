@@ -64,6 +64,7 @@ export interface ServiceOrder {
   vehicleId: string;
   vehiclePlate: string;
   vehicleModel: string;
+  vehicleKm?: string; // Campo novo para registrar KM no momento da nota
   problem: string;
   items: OSItem[];
   laborValue: number;
