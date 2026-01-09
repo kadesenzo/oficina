@@ -39,7 +39,7 @@ const ServiceOrders: React.FC = () => {
   };
 
   const shareWhatsApp = (os: ServiceOrder) => {
-    let message = `*KAENPRO MOTORS - NOTA #${os.osNumber}*\n`;
+    let message = `*KAEN MECÂNICA - NOTA #${os.osNumber}*\n`;
     message += `-----------------------------\n`;
     message += `*Cliente:* ${os.clientName}\n`;
     message += `*Veículo:* ${os.vehicleModel} (${os.vehiclePlate})\n`;
@@ -172,11 +172,10 @@ const ServiceOrders: React.FC = () => {
                     <Wrench size={32} />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAENPRO <span className="text-[#A32121]">MOTORS</span></h1>
+                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAEN <span className="text-[#A32121]">MECÂNICA</span></h1>
                     <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.3em] mt-0.5">Mecânica de Precisão</p>
                     <div className="mt-2 text-[9px] text-zinc-500 font-bold space-y-0.5 uppercase">
-                        <p>Rua dos Motores, 1234 - São Paulo</p>
-                        <p>Contato: (11) 99999-9999</p>
+                        <p>Rua Joaquim Marques Alves, 765</p>
                     </div>
                   </div>
                 </div>

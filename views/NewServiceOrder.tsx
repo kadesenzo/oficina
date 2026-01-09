@@ -118,7 +118,7 @@ const NewServiceOrder: React.FC = () => {
   const shareWhatsApp = () => {
     if (!osData) return;
     
-    let message = `*KAENPRO MOTORS - NOTA #${osData.osNumber}*\n`;
+    let message = `*KAEN MECÂNICA - NOTA #${osData.osNumber}*\n`;
     message += `-----------------------------\n`;
     message += `*Cliente:* ${osData.clientName}\n`;
     message += `*Veículo:* ${osData.vehicleModel} (${osData.vehiclePlate})\n`;
@@ -142,7 +142,7 @@ const NewServiceOrder: React.FC = () => {
     message += `*TOTAL FINAL: R$ ${osData.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}*\n`;
     message += `*Status:* ${osData.paymentStatus.toUpperCase()}\n`;
     message += `-----------------------------\n`;
-    message += `Mecânica Kaenpro - Agradecemos a preferência!`;
+    message += `Kaen Mecânica - Agradecemos a preferência!`;
 
     const phone = selectedClient?.phone.replace(/\D/g, '') || '';
     window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(message)}`, '_blank');
@@ -353,11 +353,10 @@ const NewServiceOrder: React.FC = () => {
                     <Wrench size={32} />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAENPRO <span className="text-[#A32121]">MOTORS</span></h1>
+                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900">KAEN <span className="text-[#A32121]">MECÂNICA</span></h1>
                     <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.3em] mt-0.5">Mecânica de Precisão</p>
                     <div className="mt-2 text-[9px] text-zinc-500 font-bold space-y-0.5 uppercase">
-                        <p>Rua dos Motores, 1234 - São Paulo</p>
-                        <p>CNPJ: 00.000.000/0001-00</p>
+                        <p>Rua Joaquim Marques Alves, 765</p>
                     </div>
                   </div>
                 </div>
@@ -475,7 +474,7 @@ const NewServiceOrder: React.FC = () => {
               {/* Footer Stamp */}
               <div className="mt-16 text-center">
                   <div className="inline-block border-2 border-[#A32121]/10 rounded-full px-8 py-2">
-                      <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em]">Kaenpro Motors • Qualidade e Confiança</p>
+                      <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em]">Kaen Mecânica • Qualidade e Confiança</p>
                   </div>
               </div>
             </div>
