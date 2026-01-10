@@ -13,6 +13,7 @@ import Vehicles from './views/Vehicles';
 import VehicleDetails from './views/VehicleDetails';
 import Employees from './views/Employees';
 import Billing from './views/Billing';
+import MechanicTerminal from './views/MechanicTerminal';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 
@@ -20,38 +21,58 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<'Dono' | 'Funcionário' | 'Recepção'>('Dono');
 
-  const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="flex h-screen bg-[#0B0B0B]">
-      <Sidebar role={userRole} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header role={userRole} onLogout={() => setIsAuthenticated(false)} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950">
-          {children}
-        </main>
+  const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    return (
+      <div className="flex h-screen bg-[#0B0B0B] overflow-hidden">
+        {/* Sidebar com controle de estado mobile */}
+        <Sidebar 
+          role={userRole} 
+          isOpen={isSidebarOpen} 
+          onClose={() => setIsSidebarOpen(false)} 
+        />
+        
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          <Header 
+            role={userRole} 
+            onLogout={() => setIsAuthenticated(false)} 
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+          
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950">
+            {children}
+          </main>
+
+          {/* Overlay para fechar o menu ao clicar fora no mobile */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] md:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Router>
       <Routes>
-        {/* Site Público */}
         <Route path="/" element={<LandingPage onLogin={() => {}} />} />
         
-        {/* Login - Redireciona se já logado */}
         <Route 
           path="/login" 
           element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage onLogin={() => setIsAuthenticated(true)} />} 
         />
         
-        {/* Sistema Interno - Protegido */}
         <Route 
           path="/dashboard" 
           element={isAuthenticated ? <PrivateLayout><Dashboard /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/orders" 
-          element={isAuthenticated ? <PrivateLayout><ServiceOrders /></PrivateLayout> : <Navigate to="/login" />} 
+          element={isAuthenticated ? <PrivateLayout><ServiceOrders role={userRole} /></PrivateLayout> : <Navigate to="/login" />} 
         />
         <Route 
           path="/orders/new" 
@@ -84,6 +105,10 @@ const App: React.FC = () => {
         <Route 
           path="/employees" 
           element={isAuthenticated ? <PrivateLayout><Employees /></PrivateLayout> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/terminal" 
+          element={isAuthenticated ? <PrivateLayout><MechanicTerminal /></PrivateLayout> : <Navigate to="/login" />} 
         />
         
         <Route path="*" element={<Navigate to="/" />} />

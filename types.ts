@@ -56,6 +56,20 @@ export interface BillingContact {
   level: string;
 }
 
+export interface VehicleChecklist {
+  id: string;
+  vehicleId: string;
+  plate: string;
+  clientName: string;
+  clientPhone: string;
+  km: string;
+  fuelLevel: string;
+  damages: string[]; // List of areas with damage (e.g. 'front-left', 'rear-bumper')
+  items: Record<string, boolean>; // Record of checked items
+  observations: string;
+  createdAt: string;
+}
+
 export interface ServiceOrder {
   id: string;
   osNumber: string;
@@ -64,7 +78,7 @@ export interface ServiceOrder {
   vehicleId: string;
   vehiclePlate: string;
   vehicleModel: string;
-  vehicleKm?: string; // Campo novo para registrar KM no momento da nota
+  vehicleKm?: string;
   problem: string;
   items: OSItem[];
   laborValue: number;

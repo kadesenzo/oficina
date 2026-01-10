@@ -11,12 +11,17 @@ import {
   X,
   Wrench,
   Package,
-  ClipboardList
+  ClipboardList,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ServiceOrder, PaymentStatus } from '../types';
 
-const ServiceOrders: React.FC = () => {
+interface ServiceOrdersProps {
+  role?: 'Dono' | 'Funcionário' | 'Recepção';
+}
+
+const ServiceOrders: React.FC<ServiceOrdersProps> = ({ role = 'Dono' }) => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,11 +31,19 @@ const ServiceOrders: React.FC = () => {
     setOrders(JSON.parse(localStorage.getItem('kaenpro_orders') || '[]'));
   }, []);
 
-  const handleDelete = (id: string) => {
-    if (confirm("Deseja realmente excluir esta nota?")) {
+  const handleDelete = (id: string, osNumber: string) => {
+    if (role !== 'Dono') {
+      alert("Acesso Negado: Apenas o Administrador pode apagar notas.");
+      return;
+    }
+
+    if (confirm(`⚠️ ATENÇÃO: Tem certeza que deseja apagar a nota #${osNumber}?\n\nEsta ação não pode ser desfeita.`)) {
       const updated = orders.filter(o => o.id !== id);
       setOrders(updated);
       localStorage.setItem('kaenpro_orders', JSON.stringify(updated));
+      if (selectedOS?.id === id) {
+        setSelectedOS(null);
+      }
     }
   };
 
@@ -48,7 +61,7 @@ const ServiceOrders: React.FC = () => {
   const isLongNote = selectedOS && selectedOS.items.length > 8;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20 no-print">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div>
           <h1 className="text-3xl font-black text-white">Notas Geradas</h1>
@@ -70,7 +83,7 @@ const ServiceOrders: React.FC = () => {
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Pesquisar..." 
+            placeholder="Pesquisar por nome, placa ou número..." 
             className="w-full bg-transparent border-none py-3.5 pl-12 pr-4 focus:ring-0 text-white"
           />
         </div>
@@ -78,23 +91,43 @@ const ServiceOrders: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 no-print">
         {filtered.map(os => (
-          <div key={os.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-[#A32121]/40 transition-all text-white">
+          <div key={os.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-[#A32121]/40 transition-all text-white flex flex-col">
             <div className="flex justify-between mb-4">
               <span className="text-[10px] font-black text-[#A32121] tracking-widest uppercase">#{os.osNumber}</span>
-              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${os.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>{os.paymentStatus}</span>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${os.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>{os.paymentStatus}</span>
+                {role === 'Dono' && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(os.id, os.osNumber);
+                    }}
+                    className="p-1.5 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                    title="Apagar Nota"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
             </div>
             <h3 className="text-lg font-black truncate">{os.clientName}</h3>
             <p className="text-xs font-black text-zinc-500 mb-6 uppercase tracking-tight">{os.vehiclePlate} • {os.vehicleModel}</p>
-            <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+            <div className="flex items-center justify-between pt-4 border-t border-zinc-800 mt-auto">
               <span className="text-sm font-black">R$ {os.totalValue.toLocaleString('pt-BR')}</span>
               <button onClick={() => setSelectedOS(os)} className="px-4 py-2 bg-zinc-800 text-white text-[10px] font-black uppercase rounded-xl hover:bg-[#A32121] transition-all">Ver Nota</button>
             </div>
           </div>
         ))}
+        {filtered.length === 0 && (
+          <div className="col-span-full py-20 text-center bg-zinc-900/30 border-2 border-dashed border-zinc-800 rounded-[2.5rem]">
+            <FileText size={48} className="mx-auto text-zinc-800 mb-4 opacity-20" />
+            <p className="text-zinc-600 font-bold uppercase tracking-widest text-xs italic">Nenhuma nota encontrada</p>
+          </div>
+        )}
       </div>
 
       {selectedOS && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-0 md:p-4 overflow-y-auto no-scrollbar no-print">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-0 md:p-4 overflow-y-auto no-scrollbar">
           <div className={`bg-white w-full max-w-[210mm] min-h-screen md:min-h-0 md:rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative flex flex-col ${isLongNote ? 'print-compact' : ''}`}>
             
             <div className="no-print bg-zinc-100 p-4 flex justify-between items-center border-b border-zinc-200 sticky top-0 z-[210]">
@@ -105,6 +138,14 @@ const ServiceOrders: React.FC = () => {
                 <button onClick={() => shareWhatsApp(selectedOS)} className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2">
                   <Share2 size={16} /> WhatsApp
                 </button>
+                {role === 'Dono' && (
+                  <button 
+                    onClick={() => handleDelete(selectedOS.id, selectedOS.osNumber)}
+                    className="bg-red-100 text-red-600 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 hover:bg-red-600 hover:text-white transition-all"
+                  >
+                    <Trash2 size={16} /> Apagar Nota
+                  </button>
+                )}
               </div>
               <button onClick={() => setSelectedOS(null)} className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors"><X size={32} /></button>
             </div>
@@ -176,9 +217,9 @@ const ServiceOrders: React.FC = () => {
                     <div className="mt-8 border-t border-zinc-200 pt-1 w-48 text-center">Assinatura Técnica</div>
                   </div>
                   <div className="w-full max-w-[240px]">
-                    <div className="bg-zinc-100 print:border-4 print:border-zinc-50 p-6 rounded-[2rem] text-right">
-                      <p className="text-[9px] font-black uppercase text-zinc-400 mb-1">Total da Nota</p>
-                      <p className="text-3xl font-black text-zinc-900 leading-none">R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="bg-zinc-100 print:border-4 print:border-zinc-50 p-4 rounded-[2rem] text-right">
+                      <p className="text-[8px] font-black uppercase text-zinc-400 mb-1">Total da Nota</p>
+                      <p className="text-2xl font-black text-zinc-900 leading-none">R$ {selectedOS.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 </div>

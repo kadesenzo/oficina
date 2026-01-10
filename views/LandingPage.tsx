@@ -42,10 +42,12 @@ const LandingPage: React.FC<{ onLogin: () => void }> = () => {
     }
   };
 
+  const closeMenu = () => setMobileMenuOpen(false);
+
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#A32121] font-['Inter']">
       {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 bg-[#0B0B0B]/90 backdrop-blur-md border-b border-zinc-800/50">
+      <nav className="fixed top-0 w-full z-[100] bg-[#0B0B0B]/95 backdrop-blur-md border-b border-zinc-800/50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-9 h-9 bg-[#A32121] rounded-xl flex items-center justify-center shadow-lg shadow-red-900/20">
@@ -54,6 +56,7 @@ const LandingPage: React.FC<{ onLogin: () => void }> = () => {
             <span className="text-2xl font-black tracking-tighter">KAEN<span className="text-[#A32121]">PRO</span></span>
           </div>
 
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-10 text-xs font-black uppercase tracking-widest">
             <a href="#services" className="text-zinc-400 hover:text-white transition-colors">Serviços</a>
             <a href="#consult" className="text-zinc-400 hover:text-white transition-colors">Consultar Placa</a>
@@ -67,14 +70,61 @@ const LandingPage: React.FC<{ onLogin: () => void }> = () => {
             </button>
           </div>
 
-          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X /> : <Menu />}
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle Menu"
+          >
+            {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 top-20 bg-[#0B0B0B] z-[90] md:hidden animate-in fade-in slide-in-from-top duration-300">
+            <div className="flex flex-col p-8 space-y-8 text-center">
+              <a 
+                href="#services" 
+                onClick={closeMenu}
+                className="text-lg font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-[#A32121] transition-colors"
+              >
+                Serviços
+              </a>
+              <a 
+                href="#consult" 
+                onClick={closeMenu}
+                className="text-lg font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-[#A32121] transition-colors"
+              >
+                Consultar Placa
+              </a>
+              <a 
+                href="#location" 
+                onClick={closeMenu}
+                className="text-lg font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-[#A32121] transition-colors"
+              >
+                Localização
+              </a>
+              
+              <div className="pt-8 border-t border-zinc-800">
+                <button 
+                  onClick={() => {
+                    closeMenu();
+                    navigate('/login');
+                  }}
+                  className="w-full bg-[#A32121] py-6 rounded-3xl font-black uppercase text-sm tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-red-900/20 active:scale-95 transition-transform"
+                >
+                  <Lock size={20} />
+                  Acesso Oficina
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
-      <section className="pt-40 pb-20 px-6 relative overflow-hidden">
+      <section className="pt-48 md:pt-60 pb-20 px-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#A32121]/10 rounded-full blur-[120px] -z-10 animate-pulse"></div>
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
@@ -85,7 +135,7 @@ const LandingPage: React.FC<{ onLogin: () => void }> = () => {
               </span>
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Atendimento Aberto até 18:00</span>
             </div>
-            <h1 className="text-6xl md:text-8xl font-black leading-none tracking-tighter">
+            <h1 className="text-5xl md:text-8xl font-black leading-none tracking-tighter">
               Performance <br />
               <span className="text-zinc-600">sem limites.</span>
             </h1>
@@ -105,7 +155,7 @@ const LandingPage: React.FC<{ onLogin: () => void }> = () => {
               </a>
             </div>
           </div>
-          <div className="relative group">
+          <div className="relative group hidden md:block">
             <div className="absolute -inset-4 bg-[#A32121]/20 rounded-[3rem] blur-2xl group-hover:bg-[#A32121]/30 transition-all"></div>
             <img 
               src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=1200&auto=format&fit=crop" 
@@ -161,6 +211,27 @@ const LandingPage: React.FC<{ onLogin: () => void }> = () => {
                   </div>
               </div>
             )}
+        </div>
+      </section>
+
+      {/* Services Grid */}
+      <section id="services" className="py-24 px-6 bg-[#0B0B0B]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-xs font-black text-[#A32121] uppercase tracking-[0.4em] mb-4">Excelência Técnica</h2>
+            <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Serviços Especializados</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {services.map((s, i) => (
+              <div key={i} className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-[2rem] hover:bg-zinc-900 transition-all group">
+                <div className="w-12 h-12 bg-[#A32121]/10 text-[#A32121] rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#A32121] group-hover:text-white transition-all">
+                  <s.icon size={24} />
+                </div>
+                <h4 className="text-xl font-black mb-3 uppercase tracking-tight">{s.title}</h4>
+                <p className="text-zinc-500 text-sm leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

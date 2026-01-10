@@ -384,9 +384,9 @@ const NewServiceOrder: React.FC = () => {
                   </div>
                   
                   <div className="flex flex-col items-end gap-2 min-w-[280px]">
-                    <div className="w-full bg-zinc-100 p-6 rounded-[2rem] text-right">
-                        <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-1">Total da Nota</p>
-                        <p className="text-4xl font-black text-zinc-900 leading-none">R$ {osData.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="w-full bg-zinc-100 p-4 rounded-[2rem] text-right">
+                        <p className="text-[8px] font-black uppercase text-zinc-400 tracking-widest mb-1">Total da Nota</p>
+                        <p className="text-2xl font-black text-zinc-900 leading-none">R$ {osData.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 </div>
