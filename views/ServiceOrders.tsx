@@ -12,10 +12,13 @@ import {
   Wrench,
   Package,
   ClipboardList,
-  AlertTriangle
+  AlertTriangle,
+  Image as ImageIcon,
+  Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ServiceOrder, PaymentStatus } from '../types';
+import html2canvas from 'html2canvas';
 
 interface ServiceOrdersProps {
   role?: 'Dono' | 'Funcionário' | 'Recepção';
@@ -26,6 +29,7 @@ const ServiceOrders: React.FC<ServiceOrdersProps> = ({ role = 'Dono' }) => {
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOS, setSelectedOS] = useState<ServiceOrder | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   useEffect(() => {
     setOrders(JSON.parse(localStorage.getItem('kaenpro_orders') || '[]'));
@@ -50,6 +54,33 @@ const ServiceOrders: React.FC<ServiceOrdersProps> = ({ role = 'Dono' }) => {
   const shareWhatsApp = (os: ServiceOrder) => {
     let message = `*KAEN MECÂNICA - NOTA #${os.osNumber}*\n*Veículo:* ${os.vehiclePlate}\n*Total: R$ ${os.totalValue.toLocaleString('pt-BR')}*`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const saveAsImage = async () => {
+    if (!selectedOS) return;
+    const element = document.getElementById('print-area-viewer');
+    if (!element) return;
+
+    setIsGeneratingImage(true);
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true,
+        windowWidth: 800 // Fix width for consistent image rendering
+      });
+      
+      const link = document.createElement('a');
+      link.download = `OS-${selectedOS.osNumber}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error("Erro ao gerar imagem:", err);
+      alert("Erro ao gerar imagem da nota.");
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   const filtered = orders.filter(o => 
@@ -130,10 +161,18 @@ const ServiceOrders: React.FC<ServiceOrdersProps> = ({ role = 'Dono' }) => {
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-0 md:p-4 overflow-y-auto no-scrollbar">
           <div className={`bg-white w-full max-w-[210mm] min-h-screen md:min-h-0 md:rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative flex flex-col ${isLongNote ? 'print-compact' : ''}`}>
             
-            <div className="no-print bg-zinc-100 p-4 flex justify-between items-center border-b border-zinc-200 sticky top-0 z-[210]">
-              <div className="flex gap-2">
+            <div className="no-print bg-zinc-100 p-4 flex flex-wrap gap-2 justify-between items-center border-b border-zinc-200 sticky top-0 z-[210]">
+              <div className="flex flex-wrap gap-2">
                 <button onClick={() => window.print()} className="bg-zinc-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2">
                   <Printer size={16} /> Imprimir A4
+                </button>
+                <button 
+                  onClick={saveAsImage} 
+                  disabled={isGeneratingImage}
+                  className="bg-zinc-800 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isGeneratingImage ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} />}
+                  Salvar Imagem
                 </button>
                 <button onClick={() => shareWhatsApp(selectedOS)} className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2">
                   <Share2 size={16} /> WhatsApp
