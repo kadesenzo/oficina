@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './views/LandingPage';
 import LoginPage from './views/LoginPage';
@@ -16,35 +16,84 @@ import Billing from './views/Billing';
 import MechanicTerminal from './views/MechanicTerminal';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import { SyncStatus, UserSession } from './types';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<'Dono' | 'Funcionário' | 'Recepção'>('Dono');
+  const [session, setSession] = useState<UserSession | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(SyncStatus.SYNCED);
+
+  // Efeito para recuperar sessão do sessionStorage (Simula persistência de login)
+  useEffect(() => {
+    const savedSession = sessionStorage.getItem('kaenpro_session');
+    if (savedSession) {
+      setSession(JSON.parse(savedSession));
+    }
+  }, []);
+
+  // Motor de Sincronização: Intercepta todas as mudanças e "envia para a nuvem"
+  const performCloudSync = useCallback(async (action: string) => {
+    setSyncStatus(SyncStatus.SYNCING);
+    console.log(`[CloudSync] Sincronizando: ${action}...`);
+    // Simula latência de rede profissional
+    await new Promise(r => setTimeout(r, 800));
+    setSyncStatus(SyncStatus.SYNCED);
+    console.log(`[CloudSync] Sincronização concluída com sucesso.`);
+  }, []);
+
+  const handleLogin = (username: string, role: 'Dono' | 'Funcionário' | 'Recepção') => {
+    const newSession: UserSession = {
+      username,
+      role,
+      lastSync: new Date().toISOString()
+    };
+    setSession(newSession);
+    sessionStorage.setItem('kaenpro_session', JSON.stringify(newSession));
+    performCloudSync('Full Fetch');
+  };
+
+  const handleLogout = () => {
+    setSession(null);
+    sessionStorage.removeItem('kaenpro_session');
+  };
+
+  // Funções de manipulação de dados que as telas usarão (Simulação de Service Layer)
+  const syncData = async (key: string, data: any) => {
+    if (!session) return;
+    const userKey = `kaenpro_${session.username}_${key}`;
+    localStorage.setItem(userKey, JSON.stringify(data));
+    await performCloudSync(`Update ${key}`);
+  };
 
   const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+    if (!session) return <Navigate to="/login" />;
+
     return (
       <div className="flex h-screen bg-[#0B0B0B] overflow-hidden">
-        {/* Sidebar com controle de estado mobile */}
         <Sidebar 
-          role={userRole} 
+          role={session.role} 
           isOpen={isSidebarOpen} 
           onClose={() => setIsSidebarOpen(false)} 
         />
         
         <div className="flex-1 flex flex-col overflow-hidden relative">
           <Header 
-            role={userRole} 
-            onLogout={() => setIsAuthenticated(false)} 
+            role={session.role} 
+            username={session.username}
+            syncStatus={syncStatus}
+            onLogout={handleLogout} 
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
           
           <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950">
-            {children}
+            {/* Passamos o SyncEngine para os filhos via contexto ou prop (aqui via prop para simplicidade) */}
+            {React.cloneElement(children as React.ReactElement, { 
+              session, 
+              syncData 
+            })}
           </main>
 
-          {/* Overlay para fechar o menu ao clicar fora no mobile */}
           {isSidebarOpen && (
             <div 
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] md:hidden"
@@ -63,52 +112,52 @@ const App: React.FC = () => {
         
         <Route 
           path="/login" 
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage onLogin={() => setIsAuthenticated(true)} />} 
+          element={session ? <Navigate to="/dashboard" /> : <LoginPage onLogin={handleLogin} />} 
         />
         
         <Route 
           path="/dashboard" 
-          element={isAuthenticated ? <PrivateLayout><Dashboard /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><Dashboard /></PrivateLayout>} 
         />
         <Route 
           path="/orders" 
-          element={isAuthenticated ? <PrivateLayout><ServiceOrders role={userRole} /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><ServiceOrders /></PrivateLayout>} 
         />
         <Route 
           path="/orders/new" 
-          element={isAuthenticated ? <PrivateLayout><NewServiceOrder /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><NewServiceOrder /></PrivateLayout>} 
         />
         <Route 
           path="/billing" 
-          element={isAuthenticated ? <PrivateLayout><Billing /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><Billing /></PrivateLayout>} 
         />
         <Route 
           path="/inventory" 
-          element={isAuthenticated ? <PrivateLayout><Inventory /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><Inventory /></PrivateLayout>} 
         />
         <Route 
           path="/clients" 
-          element={isAuthenticated ? <PrivateLayout><Clients role={userRole} /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><Clients /></PrivateLayout>} 
         />
         <Route 
           path="/clients/:id" 
-          element={isAuthenticated ? <PrivateLayout><ClientDetails role={userRole} /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><ClientDetails role={session?.role || 'Dono'} /></PrivateLayout>} 
         />
         <Route 
           path="/vehicles" 
-          element={isAuthenticated ? <PrivateLayout><Vehicles /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><Vehicles /></PrivateLayout>} 
         />
         <Route 
           path="/vehicles/:id" 
-          element={isAuthenticated ? <PrivateLayout><VehicleDetails /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><VehicleDetails /></PrivateLayout>} 
         />
         <Route 
           path="/employees" 
-          element={isAuthenticated ? <PrivateLayout><Employees /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><Employees /></PrivateLayout>} 
         />
         <Route 
           path="/terminal" 
-          element={isAuthenticated ? <PrivateLayout><MechanicTerminal /></PrivateLayout> : <Navigate to="/login" />} 
+          element={<PrivateLayout><MechanicTerminal /></PrivateLayout>} 
         />
         
         <Route path="*" element={<Navigate to="/" />} />

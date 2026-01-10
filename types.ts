@@ -12,6 +12,19 @@ export enum PaymentStatus {
   ATRASADO = 'Atrasado'
 }
 
+export enum SyncStatus {
+  SYNCED = 'Synced',
+  SYNCING = 'Syncing',
+  OFFLINE = 'Offline',
+  ERROR = 'Error'
+}
+
+export interface UserSession {
+  username: string;
+  role: 'Dono' | 'Funcionário' | 'Recepção';
+  lastSync: string;
+}
+
 export interface Part {
   id: string;
   name: string;
@@ -64,8 +77,8 @@ export interface VehicleChecklist {
   clientPhone: string;
   km: string;
   fuelLevel: string;
-  damages: string[]; // List of areas with damage (e.g. 'front-left', 'rear-bumper')
-  items: Record<string, boolean>; // Record of checked items
+  damages: string[];
+  items: Record<string, boolean>;
   observations: string;
   createdAt: string;
 }
