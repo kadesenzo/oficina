@@ -25,6 +25,16 @@ export interface UserSession {
   lastSync: string;
 }
 
+export interface Employee {
+  id: string;
+  name: string;
+  role: string;
+  shift: string;
+  services: number;
+  status: 'Ativo' | 'Inativo';
+  createdAt: string;
+}
+
 export interface Part {
   id: string;
   name: string;

@@ -18,51 +18,78 @@ import {
   Calendar,
   CreditCard,
   Plus,
-  Trash2
+  Trash2,
+  X,
+  PlusCircle
 } from 'lucide-react';
-import { Client, Vehicle, ServiceOrder } from '../types';
+import { Client, Vehicle, ServiceOrder, UserSession } from '../types';
 
 interface ClientDetailsProps {
   role: 'Dono' | 'Funcionário' | 'Recepção';
+  session?: UserSession;
+  syncData?: (key: string, data: any) => Promise<void>;
 }
 
-const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
+const ClientDetails: React.FC<ClientDetailsProps> = ({ role, session, syncData }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
   const [client, setClient] = useState<Client | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+
+  // New Vehicle Form
+  const [newVehicle, setNewVehicle] = useState({
+    plate: '',
+    model: '',
+    brand: '',
+    year: '',
+    km: ''
+  });
 
   useEffect(() => {
-    const savedClients = JSON.parse(localStorage.getItem('kaenpro_clients') || '[]');
-    const savedVehicles = JSON.parse(localStorage.getItem('kaenpro_vehicles') || '[]');
-    const savedOrders = JSON.parse(localStorage.getItem('kaenpro_orders') || '[]');
+    if (session) {
+      const savedClients = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_clients`) || '[]');
+      const savedVehicles = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_vehicles`) || '[]');
+      const savedOrders = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_orders`) || '[]');
 
-    const foundClient = savedClients.find((c: Client) => c.id === id);
-    if (foundClient) {
-      setClient(foundClient);
-      const clientVehicles = savedVehicles.filter((v: Vehicle) => v.clientId === foundClient.id);
-      setVehicles(clientVehicles);
-      const clientOrders = savedOrders.filter((o: ServiceOrder) => o.clientId === foundClient.id);
-      setOrders(clientOrders.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      const foundClient = savedClients.find((c: Client) => c.id === id);
+      if (foundClient) {
+        setClient(foundClient);
+        const clientVehicles = savedVehicles.filter((v: Vehicle) => v.clientId === foundClient.id);
+        setVehicles(clientVehicles);
+        const clientOrders = savedOrders.filter((o: ServiceOrder) => o.clientId === foundClient.id);
+        setOrders(clientOrders.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      }
     }
-  }, [id]);
+  }, [id, session]);
 
-  if (!client) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-zinc-500">
-        <User size={48} className="mb-4 opacity-20" />
-        <p className="font-bold">Cliente não encontrado.</p>
-        <button onClick={() => navigate('/clients')} className="mt-4 text-[#A32121] hover:underline flex items-center gap-2">
-          <ChevronLeft size={16} /> Voltar para Clientes
-        </button>
-      </div>
-    );
-  }
+  const handleAddVehicle = async () => {
+    if (!newVehicle.plate || !client || !session || !syncData) return;
 
-  const handleDeleteClient = () => {
-    if (role !== 'Dono') {
+    const vehicle: Vehicle = {
+      id: Math.random().toString(36).substr(2, 9),
+      clientId: client.id,
+      plate: newVehicle.plate.toUpperCase(),
+      model: newVehicle.model,
+      brand: newVehicle.brand,
+      year: newVehicle.year,
+      km: parseFloat(newVehicle.km) || 0
+    };
+
+    const allSavedVehicles = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_vehicles`) || '[]');
+    const updatedVehicles = [...allSavedVehicles, vehicle];
+    
+    setVehicles([...vehicles, vehicle]);
+    await syncData('vehicles', updatedVehicles);
+    
+    setShowVehicleModal(false);
+    setNewVehicle({ plate: '', model: '', brand: '', year: '', km: '' });
+  };
+
+  const handleDeleteClient = async () => {
+    if (role !== 'Dono' || !session || !syncData || !client) {
       alert("Acesso Negado: Apenas o Dono pode excluir clientes.");
       return;
     }
@@ -70,23 +97,25 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
     const confirmMessage = `⚠️ ATENÇÃO: Tem certeza que deseja excluir o cliente ${client.name}?\n\nTODAS as notas (Ordens de Serviço) e TODOS os veículos vinculados a este cliente serão apagados PERMANENTEMENTE.\n\nEsta ação não pode ser desfeita.`;
     
     if (confirm(confirmMessage)) {
-      const savedClients = JSON.parse(localStorage.getItem('kaenpro_clients') || '[]');
+      const savedClients = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_clients`) || '[]');
       const updatedClients = savedClients.filter((c: Client) => c.id !== client.id);
       
-      const savedVehicles = JSON.parse(localStorage.getItem('kaenpro_vehicles') || '[]');
+      const savedVehicles = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_vehicles`) || '[]');
       const updatedVehicles = savedVehicles.filter((v: Vehicle) => v.clientId !== client.id);
       
-      const savedOrders = JSON.parse(localStorage.getItem('kaenpro_orders') || '[]');
+      const savedOrders = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_orders`) || '[]');
       const updatedOrders = savedOrders.filter((o: ServiceOrder) => o.clientId !== client.id);
 
-      localStorage.setItem('kaenpro_clients', JSON.stringify(updatedClients));
-      localStorage.setItem('kaenpro_vehicles', JSON.stringify(updatedVehicles));
-      localStorage.setItem('kaenpro_orders', JSON.stringify(updatedOrders));
+      await syncData('clients', updatedClients);
+      await syncData('vehicles', updatedVehicles);
+      await syncData('orders', updatedOrders);
       
       alert("Cliente e todos os dados vinculados removidos com sucesso.");
       navigate('/clients');
     }
   };
+
+  if (!client) return null;
 
   const totalSpent = orders.reduce((acc, curr) => acc + curr.totalValue, 0);
   
@@ -113,7 +142,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
                  <button onClick={() => navigate('/clients')} className="text-zinc-500 hover:text-white transition-colors">
                   <ChevronLeft size={20} />
                 </button>
-                <h1 className="text-3xl font-black text-white uppercase tracking-tighter">{client.name}</h1>
+                <h1 className="text-3xl font-black text-white uppercase tracking-tighter italic">{client.name}</h1>
               </div>
               <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">
                 Membro desde {new Date(client.createdAt).toLocaleDateString('pt-BR')} • {client.document || 'Sem Documento'}
@@ -160,7 +189,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
           <div className="flex justify-between items-center mb-4 text-[#A32121]">
             <DollarSign size={20} />
-            <span className="text-[10px] font-black uppercase text-zinc-500">Financeiro Acumulado</span>
+            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Financeiro Acumulado</span>
           </div>
           <p className="text-2xl font-black text-white">R$ {totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           <p className="text-[10px] text-zinc-600 font-bold uppercase mt-1">Total investido na oficina</p>
@@ -168,7 +197,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
           <div className="flex justify-between items-center mb-4 text-blue-500">
             <Car size={20} />
-            <span className="text-[10px] font-black uppercase text-zinc-500">Frota Vinculada</span>
+            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Frota Vinculada</span>
           </div>
           <p className="text-2xl font-black text-white">{vehicles.length} <span className="text-sm font-normal text-zinc-600 uppercase">Veículos</span></p>
           <p className="text-[10px] text-zinc-600 font-bold uppercase mt-1">Carros sob responsabilidade</p>
@@ -176,7 +205,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
           <div className="flex justify-between items-center mb-4 text-amber-500">
             <History size={20} />
-            <span className="text-[10px] font-black uppercase text-zinc-500">Ordens de Serviço</span>
+            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Ordens de Serviço</span>
           </div>
           <p className="text-2xl font-black text-white">{orders.length} <span className="text-sm font-normal text-zinc-600 uppercase">Registros</span></p>
           <p className="text-[10px] text-zinc-600 font-bold uppercase mt-1">Total de passagens técnicas</p>
@@ -184,7 +213,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
           <div className="flex justify-between items-center mb-4 text-emerald-500">
             <CreditCard size={20} />
-            <span className="text-[10px] font-black uppercase text-zinc-500">Score de Pagamento</span>
+            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Score de Pagamento</span>
           </div>
           <p className="text-2xl font-black text-white">Excelente</p>
           <p className="text-[10px] text-zinc-600 font-bold uppercase mt-1">Fidelidade e pontualidade</p>
@@ -197,7 +226,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-black text-white flex items-center gap-3">
               <Car size={20} className="text-[#A32121]" />
-              Meus Veículos
+              Frota de {client.name.split(' ')[0]}
             </h3>
           </div>
           
@@ -214,7 +243,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
                   </div>
                   <ChevronRight size={18} className="text-zinc-700 group-hover:text-white transition-colors" />
                 </div>
-                <h4 className="text-lg font-black text-white mb-1 uppercase tracking-tight">{v.model}</h4>
+                <h4 className="text-lg font-black text-white mb-1 uppercase tracking-tight italic">{v.model}</h4>
                 <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">{v.brand} • {v.km.toLocaleString('pt-BR')} KM</p>
               </div>
             ))}
@@ -224,10 +253,10 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
               </div>
             )}
             <button 
-               onClick={() => navigate('/vehicles')}
-               className="w-full bg-zinc-800/50 border border-zinc-800 text-zinc-400 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all flex items-center justify-center gap-2"
+               onClick={() => setShowVehicleModal(true)}
+               className="w-full bg-[#A32121]/10 border border-[#A32121]/20 text-[#A32121] py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#A32121] hover:text-white transition-all flex items-center justify-center gap-2 shadow-xl shadow-red-900/10"
             >
-              <Plus size={14} /> Vincular Outro Carro
+              <PlusCircle size={16} /> Adicionar Novo Veículo
             </button>
           </div>
         </div>
@@ -255,7 +284,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
                         {new Date(os.createdAt).toLocaleDateString('pt-BR')}
                       </span>
                     </div>
-                    <p className="text-sm font-bold text-zinc-400 mb-2 uppercase">{os.vehicleModel} ({os.vehiclePlate})</p>
+                    <p className="text-sm font-bold text-zinc-400 mb-2 uppercase italic">{os.vehicleModel} ({os.vehiclePlate})</p>
                     <p className="text-xs text-zinc-500 line-clamp-1 max-w-md italic">"{os.problem}"</p>
                   </div>
                 </div>
@@ -265,7 +294,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
                     onClick={() => navigate('/orders')}
                     className="text-[9px] font-black uppercase text-[#A32121] tracking-widest mt-2 flex items-center gap-1 hover:underline"
                   >
-                    Ver Nota Completa <ExternalLink size={10} />
+                    Ver Detalhes <ExternalLink size={10} />
                   </button>
                 </div>
               </div>
@@ -302,6 +331,90 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ role }) => {
           </button>
         )}
       </div>
+
+      {/* Add Vehicle Modal */}
+      {showVehicleModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg p-10 rounded-[3rem] shadow-2xl relative animate-in zoom-in">
+              <button onClick={() => setShowVehicleModal(false)} className="absolute top-8 right-8 text-zinc-500 hover:text-white"><X size={28} /></button>
+              
+              <div className="flex items-center gap-4 mb-10">
+                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-900/20">
+                  <Car size={28} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Novo Veículo</h2>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Vincular a {client.name.split(' ')[0]}</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Placa *</label>
+                    <input 
+                      type="text" 
+                      value={newVehicle.plate}
+                      onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value.toUpperCase()})}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-white focus:border-blue-500 outline-none font-bold placeholder-zinc-800"
+                      placeholder="ABC-1D23"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Modelo *</label>
+                    <input 
+                      type="text" 
+                      value={newVehicle.model}
+                      onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-white focus:border-blue-500 outline-none font-bold placeholder-zinc-800"
+                      placeholder="Ex: Corolla XEI"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Marca</label>
+                    <input 
+                      type="text" 
+                      value={newVehicle.brand}
+                      onChange={(e) => setNewVehicle({...newVehicle, brand: e.target.value})}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-4 text-white focus:border-blue-500 outline-none text-xs font-bold"
+                      placeholder="Toyota"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Ano</label>
+                    <input 
+                      type="text" 
+                      value={newVehicle.year}
+                      onChange={(e) => setNewVehicle({...newVehicle, year: e.target.value})}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-4 text-white focus:border-blue-500 outline-none text-xs font-bold"
+                      placeholder="2022"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">KM Inicial</label>
+                    <input 
+                      type="number" 
+                      value={newVehicle.km}
+                      onChange={(e) => setNewVehicle({...newVehicle, km: e.target.value})}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-4 text-white focus:border-blue-500 outline-none text-xs font-bold"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleAddVehicle}
+                  className="w-full bg-blue-600 py-6 rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-2xl shadow-blue-900/30 mt-4 active:scale-95 transition-transform"
+                >
+                  Confirmar Vínculo
+                </button>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 };
