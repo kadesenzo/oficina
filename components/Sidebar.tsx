@@ -40,11 +40,11 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
 
   return (
     <aside className={`
-      fixed inset-y-0 left-0 z-[150] w-72 bg-[#0c0c0e] border-r border-zinc-800/50 transition-all duration-300 transform
-      md:relative md:translate-x-0 shadow-2xl
+      fixed inset-y-0 left-0 z-[150] w-72 bg-[#0c0c0e] border-r border-zinc-900 transition-all duration-300 transform
+      md:relative md:translate-x-0
       ${isOpen ? 'translate-x-0' : '-translate-x-full'}
     `}>
-      <div className="p-8 flex items-center justify-between">
+      <div className="p-10 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-[#E11D48] rounded-xl flex items-center justify-center glow-red">
             <Wrench className="text-white w-5 h-5" />
@@ -53,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
             <span className="text-xl font-black tracking-tighter text-white leading-none uppercase italic">
               KAEN<span className="text-[#E11D48]">PRO</span>
             </span>
-            <span className="text-[8px] font-bold uppercase text-zinc-500 tracking-[0.2em] mt-1">Elite Garage</span>
+            <span className="text-[8px] font-bold uppercase text-zinc-600 tracking-[0.3em] mt-1">SISTEMA ELITE</span>
           </div>
         </div>
         
@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
         </button>
       </div>
 
-      <nav className="flex-1 mt-6 px-4 space-y-2 overflow-y-auto no-scrollbar pb-10">
+      <nav className="flex-1 mt-2 px-6 space-y-1.5 overflow-y-auto no-scrollbar pb-10">
         {filteredItems.map((item) => (
           <NavLink
             key={item.path}
@@ -74,29 +74,29 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
             className={({ isActive }) => `
               flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200 group
               ${isActive 
-                ? 'bg-[#E11D48] text-white active-glow translate-x-1' 
+                ? 'bg-[#E11D48] text-white active-glow' 
                 : 'text-zinc-500 hover:bg-zinc-900/50 hover:text-zinc-200'}
             `}
           >
             {({ isActive }) => (
               <>
                 <div className="flex items-center space-x-3">
-                  <item.icon size={18} className={isActive ? 'text-white' : 'text-zinc-600 group-hover:text-[#E11D48]'} />
-                  <span className="font-bold text-[11px] uppercase tracking-wider">{item.name}</span>
+                  <item.icon size={18} className={isActive ? 'text-white' : 'text-zinc-700 group-hover:text-[#E11D48]'} />
+                  <span className="font-bold text-[11px] uppercase tracking-widest">{item.name}</span>
                 </div>
-                {isActive && <ChevronRight size={14} className="opacity-50" />}
+                {isActive && <ChevronRight size={14} className="opacity-40" />}
               </>
             )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-6 mt-auto border-t border-zinc-800/50 bg-[#0a0a0b]">
-        <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer text-zinc-500 group">
+      <div className="p-6 mt-auto border-t border-zinc-900 bg-[#09090b]">
+        <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer text-zinc-600 group">
           <div className="p-2 bg-zinc-900 rounded-lg group-hover:text-white transition-colors">
             <Settings size={16} />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest">Ajustes</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Painel Admin</span>
         </div>
       </div>
     </aside>

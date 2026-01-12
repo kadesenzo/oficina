@@ -61,20 +61,20 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Centro de <span className="text-[#E11D48]">Performance</span></h1>
+          <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">CENTRO DE <span className="text-[#E11D48]">PERFORMANCE</span></h1>
           <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 mt-2">
-            <Calendar size={12} className="text-[#E11D48]" /> Dashboard Ativo • {session?.username}
+            <Calendar size={12} className="text-[#E11D48]" /> DASHBOARD ATIVO • {session?.username}
           </p>
         </div>
         <button 
           onClick={() => navigate('/orders/new')} 
-          className="bg-[#E11D48] text-white px-8 py-4 rounded-2xl font-bold uppercase text-[11px] tracking-widest flex items-center gap-3 shadow-xl glow-red hover:scale-[1.02] active:scale-95 transition-all"
+          className="bg-[#E11D48] text-white px-8 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center gap-3 shadow-xl glow-red hover:scale-[1.02] active:scale-95 transition-all"
         >
           <PlusCircle size={18} /> Nova Ordem de Serviço
         </button>
       </div>
 
-      <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-xl relative overflow-hidden group border-l-4 border-l-[#E11D48]">
+      <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group border-l-4 border-l-[#E11D48]">
         <div className="absolute top-0 right-0 p-10 text-zinc-800 opacity-10 group-hover:scale-110 transition-transform"><Sparkles size={120}/></div>
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-[#E11D48]/10 text-[#E11D48] rounded-xl"><Sparkles size={18}/></div>
@@ -102,7 +102,7 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
         <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-zinc-700 transition-all">
           <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Serviços Entregues</p>
           <p className="text-3xl font-black text-white italic">{dailyFinished.length}</p>
-          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Dados de {new Date().toLocaleDateString('pt-BR')}</p>
+          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Sincronizado via Cloud</p>
         </div>
 
         <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-zinc-700 transition-all">
@@ -112,7 +112,7 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
         </div>
 
         <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-[#E11D48]/30 transition-all">
-          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Estoque Crítico</p>
+          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Estoque Crítico</p>
           <p className={`text-3xl font-black italic ${criticalStock > 0 ? 'text-[#E11D48]' : 'text-white'}`}>{criticalStock}</p>
           <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Itens abaixo do mínimo</p>
         </div>

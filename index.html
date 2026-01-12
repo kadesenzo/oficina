@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Kaenpro - Elite Garage Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
       window.process = { env: { API_KEY: "" } };
     </script>
@@ -24,10 +24,13 @@
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
-        .active-glow { box-shadow: 0 0 15px rgba(225, 29, 72, 0.3); }
+        .active-glow { box-shadow: 0 0 20px rgba(225, 29, 72, 0.3); }
         .glow-red { box-shadow: 0 4px 20px rgba(225, 29, 72, 0.15); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         input:focus, select:focus, textarea:focus { border-color: var(--brand-red) !important; outline: none; }
+        
+        /* Ajustes de tipografia e espaçamento */
+        h1, h2, h3 { letter-spacing: -0.025em; }
     </style>
 <script type="importmap">
 {
