@@ -13,7 +13,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ServiceOrder, Part, OSStatus, UserSession } from '../types';
+import { ServiceOrder, Part, OSStatus, UserSession } from '../types.ts';
 import { GoogleGenAI } from "@google/genai";
 
 const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {

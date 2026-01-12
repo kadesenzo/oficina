@@ -1,28 +1,27 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './views/LandingPage';
-import LoginPage from './views/LoginPage';
-import Dashboard from './views/Dashboard';
-import ServiceOrders from './views/ServiceOrders';
-import NewServiceOrder from './views/NewServiceOrder';
-import Inventory from './views/Inventory';
-import Clients from './views/Clients';
-import ClientDetails from './views/ClientDetails';
-import Vehicles from './views/Vehicles';
-import VehicleDetails from './views/VehicleDetails';
-import Employees from './views/Employees';
-import Billing from './views/Billing';
-import MechanicTerminal from './views/MechanicTerminal';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
-import { SyncStatus, UserSession } from './types';
+import LandingPage from './views/LandingPage.tsx';
+import LoginPage from './views/LoginPage.tsx';
+import Dashboard from './views/Dashboard.tsx';
+import ServiceOrders from './views/ServiceOrders.tsx';
+import NewServiceOrder from './views/NewServiceOrder.tsx';
+import Inventory from './views/Inventory.tsx';
+import Clients from './views/Clients.tsx';
+import ClientDetails from './views/ClientDetails.tsx';
+import Vehicles from './views/Vehicles.tsx';
+import VehicleDetails from './views/VehicleDetails.tsx';
+import Employees from './views/Employees.tsx';
+import Billing from './views/Billing.tsx';
+import MechanicTerminal from './views/MechanicTerminal.tsx';
+import Sidebar from './components/Sidebar.tsx';
+import Header from './components/Header.tsx';
+import { SyncStatus, UserSession } from './types.ts';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<UserSession | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(SyncStatus.SYNCED);
 
-  // Efeito para recuperar sessão do sessionStorage (Simula persistência de login)
   useEffect(() => {
     const savedSession = sessionStorage.getItem('kaenpro_session');
     if (savedSession) {
@@ -30,14 +29,10 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Motor de Sincronização: Intercepta todas as mudanças e "envia para a nuvem"
   const performCloudSync = useCallback(async (action: string) => {
     setSyncStatus(SyncStatus.SYNCING);
-    console.log(`[CloudSync] Sincronizando: ${action}...`);
-    // Simula latência de rede profissional
     await new Promise(r => setTimeout(r, 800));
     setSyncStatus(SyncStatus.SYNCED);
-    console.log(`[CloudSync] Sincronização concluída com sucesso.`);
   }, []);
 
   const handleLogin = (username: string, role: 'Dono' | 'Funcionário' | 'Recepção') => {
@@ -56,7 +51,6 @@ const App: React.FC = () => {
     sessionStorage.removeItem('kaenpro_session');
   };
 
-  // Funções de manipulação de dados que as telas usarão (Simulação de Service Layer)
   const syncData = async (key: string, data: any) => {
     if (!session) return;
     const userKey = `kaenpro_${session.username}_${key}`;
@@ -87,8 +81,8 @@ const App: React.FC = () => {
           />
           
           <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950">
-            {/* Passamos o SyncEngine para os filhos via contexto ou prop (aqui via prop para simplicidade) */}
-            {React.cloneElement(children as React.ReactElement, { 
+            {/* Fix: Added <any> generic to React.ReactElement cast to resolve property 'session' does not exist error */}
+            {React.cloneElement(children as React.ReactElement<any>, { 
               session, 
               syncData 
             })}
@@ -137,7 +131,7 @@ const App: React.FC = () => {
         />
         <Route 
           path="/clients" 
-          element={<PrivateLayout><Clients /></PrivateLayout>} 
+          element={<PrivateLayout><Clients role={session?.role || 'Dono'} /></PrivateLayout>} 
         />
         <Route 
           path="/clients/:id" 

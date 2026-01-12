@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Bell, LogOut, UserCircle, Menu, CloudCheck, RefreshCw } from 'lucide-react';
-import { SyncStatus } from '../types';
+import { Bell, LogOut, UserCircle, Menu, RefreshCw } from 'lucide-react';
+import { SyncStatus } from '../types.ts';
 
 interface HeaderProps {
   onLogout: () => void;
