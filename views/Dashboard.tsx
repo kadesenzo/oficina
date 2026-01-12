@@ -4,16 +4,14 @@ import {
   DollarSign, 
   Car, 
   Package, 
-  TrendingUp, 
   PlusCircle, 
   Sparkles,
-  ChevronRight,
-  FileText,
   Loader2,
-  Calendar
+  Calendar,
+  ArrowUpRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ServiceOrder, Part, OSStatus, UserSession } from '../types.ts';
+import { ServiceOrder, Part, OSStatus, UserSession } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
 const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
@@ -60,55 +58,63 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
   const criticalStock = parts.filter(p => p.stock <= p.minStock).length;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-20">
+    <div className="space-y-10 animate-in fade-in duration-700 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter">Performance <span className="text-[#E11D48]">Center</span></h1>
-          <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
+          <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Centro de <span className="text-[#E11D48]">Performance</span></h1>
+          <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 mt-2">
             <Calendar size={12} className="text-[#E11D48]" /> Dashboard Ativo • {session?.username}
           </p>
         </div>
         <button 
           onClick={() => navigate('/orders/new')} 
-          className="bg-[#E11D48] text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-3 shadow-xl glow-red hover:scale-105 transition-all"
+          className="bg-[#E11D48] text-white px-8 py-4 rounded-2xl font-bold uppercase text-[11px] tracking-widest flex items-center gap-3 shadow-xl glow-red hover:scale-[1.02] active:scale-95 transition-all"
         >
           <PlusCircle size={18} /> Nova Ordem de Serviço
         </button>
       </div>
 
-      <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-8 text-zinc-900 opacity-20 group-hover:scale-110 transition-transform"><Sparkles size={80}/></div>
+      <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-xl relative overflow-hidden group border-l-4 border-l-[#E11D48]">
+        <div className="absolute top-0 right-0 p-10 text-zinc-800 opacity-10 group-hover:scale-110 transition-transform"><Sparkles size={120}/></div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-[#E11D48]/20 text-[#E11D48] rounded-xl"><Sparkles size={18}/></div>
-          <h3 className="text-[10px] font-black text-[#E11D48] uppercase tracking-[0.3em] italic">Kaenpro Smart Insight</h3>
+          <div className="p-2 bg-[#E11D48]/10 text-[#E11D48] rounded-xl"><Sparkles size={18}/></div>
+          <h3 className="text-[10px] font-bold text-[#E11D48] uppercase tracking-[0.3em] italic">Kaenpro Smart AI</h3>
         </div>
         {isAiLoading ? (
-          <div className="flex items-center gap-4 text-zinc-600 italic"><Loader2 className="animate-spin" size={18}/> <span className="text-sm font-medium">IA processando...</span></div>
+          <div className="flex items-center gap-4 text-zinc-500 italic"><Loader2 className="animate-spin" size={18}/> <span className="text-sm font-medium">IA analisando dados técnicos...</span></div>
         ) : (
-          <p className="text-xl font-black text-white italic leading-tight max-w-2xl">{aiInsight || 'Analisando dados da oficina...'}</p>
+          <p className="text-xl font-bold text-zinc-100 italic leading-snug max-w-3xl">{aiInsight || 'Processando insights estratégicos...'}</p>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-xl group">
-          <p className="text-zinc-600 text-[9px] font-black uppercase mb-1 tracking-widest">Receita Hoje</p>
+        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg group hover:border-[#E11D48]/30 transition-all">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Receita Hoje</p>
+            <ArrowUpRight size={16} className="text-emerald-500" />
+          </div>
           <p className="text-3xl font-black text-white italic">R$ {dailyRevenue.toLocaleString('pt-BR')}</p>
-          <div className="mt-4 h-1 bg-zinc-900 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 w-[60%]"></div></div>
+          <div className="mt-4 h-1 bg-zinc-900 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 w-[65%]"></div>
+          </div>
         </div>
         
-        <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-xl">
-          <p className="text-zinc-600 text-[9px] font-black uppercase mb-1 tracking-widest">Entregues</p>
+        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-zinc-700 transition-all">
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Serviços Entregues</p>
           <p className="text-3xl font-black text-white italic">{dailyFinished.length}</p>
+          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Dados de {new Date().toLocaleDateString('pt-BR')}</p>
         </div>
 
-        <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-xl">
-          <p className="text-zinc-600 text-[9px] font-black uppercase mb-1 tracking-widest">Pátio</p>
+        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-zinc-700 transition-all">
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Veículos no Pátio</p>
           <p className="text-3xl font-black text-white italic">{orders.filter(o => o.status === OSStatus.EM_ANDAMENTO).length}</p>
+          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Total em execução</p>
         </div>
 
-        <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-xl">
-          <p className="text-zinc-600 text-[9px] font-black uppercase mb-1 tracking-widest">Estoque Crítico</p>
+        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-[#E11D48]/30 transition-all">
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Estoque Crítico</p>
           <p className={`text-3xl font-black italic ${criticalStock > 0 ? 'text-[#E11D48]' : 'text-white'}`}>{criticalStock}</p>
+          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Itens abaixo do mínimo</p>
         </div>
       </div>
     </div>

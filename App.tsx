@@ -1,22 +1,22 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './views/LandingPage.tsx';
-import LoginPage from './views/LoginPage.tsx';
-import Dashboard from './views/Dashboard.tsx';
-import ServiceOrders from './views/ServiceOrders.tsx';
-import NewServiceOrder from './views/NewServiceOrder.tsx';
-import Inventory from './views/Inventory.tsx';
-import Clients from './views/Clients.tsx';
-import ClientDetails from './views/ClientDetails.tsx';
-import Vehicles from './views/Vehicles.tsx';
-import VehicleDetails from './views/VehicleDetails.tsx';
-import Employees from './views/Employees.tsx';
-import Billing from './views/Billing.tsx';
-import MechanicTerminal from './views/MechanicTerminal.tsx';
-import Sidebar from './components/Sidebar.tsx';
-import Header from './components/Header.tsx';
-import { SyncStatus, UserSession } from './types.ts';
+import LandingPage from './views/LandingPage';
+import LoginPage from './views/LoginPage';
+import Dashboard from './views/Dashboard';
+import ServiceOrders from './views/ServiceOrders';
+import NewServiceOrder from './views/NewServiceOrder';
+import Inventory from './views/Inventory';
+import Clients from './views/Clients';
+import ClientDetails from './views/ClientDetails';
+import Vehicles from './views/Vehicles';
+import VehicleDetails from './views/VehicleDetails';
+import Employees from './views/Employees';
+import Billing from './views/Billing';
+import MechanicTerminal from './views/MechanicTerminal';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import { SyncStatus, UserSession } from './types';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<UserSession | null>(null);
