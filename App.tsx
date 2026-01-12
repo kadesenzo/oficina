@@ -25,7 +25,11 @@ const App: React.FC = () => {
   useEffect(() => {
     const savedSession = sessionStorage.getItem('kaenpro_session');
     if (savedSession) {
-      setSession(JSON.parse(savedSession));
+      try {
+        setSession(JSON.parse(savedSession));
+      } catch (e) {
+        sessionStorage.removeItem('kaenpro_session');
+      }
     }
   }, []);
 
