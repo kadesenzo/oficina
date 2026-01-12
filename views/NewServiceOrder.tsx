@@ -65,12 +65,12 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
   const handleAiSuggest = async () => {
     if (!problem || !selectedVehicle) {
-      alert("Descreva os sintomas do veículo para a IA ajudar.");
+      alert("Descreva o sintoma primeiro.");
       return;
     }
 
     if (!process.env.API_KEY) {
-      alert("IA indisponível no momento. Por favor, adicione os itens manualmente.");
+      alert("IA Indisponível.");
       return;
     }
 
@@ -79,11 +79,10 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Como um mecânico especialista de elite da Kaenpro, analise o seguinte problema: "${problem}" no veículo ${selectedVehicle.model}. Sugira 3 peças prováveis e um valor estimado de mão de obra. Responda em JSON puro seguindo o formato: {"items": [{"desc": "nome peça", "price": 100}], "labor": 200, "explanation": "breve explicação"}`,
+        contents: `Analise o problema: "${problem}" no ${selectedVehicle.model}. Sugira peças e mão de obra em JSON: {"items": [{"desc": "nome", "price": 0}], "labor": 0}`,
       });
       
       const data = JSON.parse(response.text.replace(/```json|```/g, "").trim());
-      
       const newItems: OSItem[] = data.items.map((i: any) => ({
         id: Math.random().toString(36).substr(2, 9),
         description: i.desc.toUpperCase(),
@@ -94,10 +93,8 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
       setItems([...items, ...newItems]);
       setLabor(data.labor.toString());
-      alert(`IA Kaenpro: ${data.explanation}`);
     } catch (err) {
-      console.error(err);
-      alert("Erro ao consultar assistente de IA.");
+      alert("Erro na IA.");
     } finally {
       setIsAiLoading(false);
     }
@@ -106,7 +103,6 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
   const handleSelectClient = (client: Client) => {
     setSelectedClient(client);
     setClientSearch('');
-    setSelectedVehicle(null);
     setClientVehicles(allVehicles.filter(v => v.clientId === client.id));
   };
 
@@ -120,8 +116,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
   const totalValue = useMemo(() => {
     const itemsSum = items.reduce((acc, curr) => acc + (curr.quantity * curr.unitPrice), 0);
-    const final = itemsSum + (parseFloat(labor) || 0) - (parseFloat(discount) || 0);
-    return final > 0 ? final : 0;
+    return itemsSum + (parseFloat(labor) || 0) - (parseFloat(discount) || 0);
   }, [items, labor, discount]);
 
   const handleFinalize = async () => {
@@ -163,50 +158,50 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-32 animate-in fade-in duration-500">
+    <div className="max-w-5xl mx-auto space-y-6 pb-20 animate-in fade-in duration-500">
       <div className="flex items-center justify-between px-4 md:px-0">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors">
-          <ChevronLeft size={20} />
-          <span className="font-black uppercase text-[10px] tracking-widest">Voltar</span>
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-zinc-600 hover:text-white transition-colors">
+          <ChevronLeft size={18} />
+          <span className="font-bold uppercase text-[10px] tracking-widest">Painel Anterior</span>
         </button>
-        <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter">Gerar <span className="text-[#E11D48]">Nota Pro</span></h1>
+        <h1 className="text-xl font-black text-white italic uppercase tracking-tighter">EMITIR <span className="text-[#E11D48]">NOTA FISCAL</span></h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 md:px-0">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-2xl">
+          <div className="bg-[#0c0c0e] border border-zinc-900 p-8 rounded-3xl shadow-xl">
             {!selectedClient ? (
               <div className="space-y-4">
-                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest italic ml-1">1. Localizar Cliente</label>
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">1. Selecionar Proprietário</label>
                 <div className="relative">
-                   <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700" size={20} />
+                   <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-700" size={18} />
                    <input 
                     type="text" value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
-                    placeholder="BUSCAR CLIENTE..."
-                    className="w-full bg-[#050505] border-2 border-[#1F1F1F] rounded-[2rem] pl-16 pr-6 py-6 text-white font-black outline-none focus:border-[#E11D48] transition-all"
+                    placeholder="Nome ou WhatsApp..."
+                    className="w-full bg-[#050505] border border-zinc-800 rounded-2xl pl-14 pr-6 py-5 text-white font-bold outline-none focus:border-[#E11D48] transition-all"
                    />
                 </div>
                 {filteredClients.map(c => (
-                  <button key={c.id} onClick={() => handleSelectClient(c)} className="w-full p-6 flex justify-between bg-zinc-900/50 rounded-3xl mb-2 hover:bg-[#E11D48] group transition-all">
-                    <span className="font-black text-white uppercase">{c.name}</span>
-                    <ChevronRight size={18} />
+                  <button key={c.id} onClick={() => handleSelectClient(c)} className="w-full p-5 flex justify-between bg-zinc-900/30 rounded-2xl border border-zinc-800/50 hover:bg-[#E11D48] group transition-all">
+                    <span className="font-bold text-zinc-400 group-hover:text-white uppercase text-xs">{c.name}</span>
+                    <ChevronRight size={16} className="text-zinc-700 group-hover:text-white" />
                   </button>
                 ))}
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-5 bg-[#050505] border border-zinc-800 rounded-[2rem]">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#E11D48]/10 text-[#E11D48] rounded-xl flex items-center justify-center"><User size={24} /></div>
-                    <div><h3 className="text-lg font-black text-white uppercase italic">{selectedClient.name}</h3></div>
+                <div className="flex items-center justify-between p-4 bg-[#050505] border border-zinc-800 rounded-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#E11D48]/10 text-[#E11D48] rounded-xl flex items-center justify-center"><User size={20} /></div>
+                    <h3 className="text-sm font-bold text-white uppercase italic">{selectedClient.name}</h3>
                   </div>
-                  <button onClick={() => setSelectedClient(null)} className="p-3 bg-zinc-900 rounded-xl text-zinc-500 hover:text-white"><X size={20}/></button>
+                  <button onClick={() => setSelectedClient(null)} className="p-2 text-zinc-600 hover:text-white"><X size={18}/></button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {clientVehicles.map(v => (
-                    <button key={v.id} onClick={() => setSelectedVehicle(v)} className={`p-6 rounded-[2rem] border-2 transition-all ${selectedVehicle?.id === v.id ? 'bg-[#E11D48]/10 border-[#E11D48]' : 'bg-zinc-950 border-zinc-800'}`}>
-                      <Car size={22} className="mb-2" />
-                      <p className="font-black text-white">{v.plate}</p>
+                    <button key={v.id} onClick={() => setSelectedVehicle(v)} className={`p-5 rounded-2xl border transition-all text-left ${selectedVehicle?.id === v.id ? 'bg-[#E11D48]/10 border-[#E11D48]' : 'bg-zinc-900/30 border-zinc-800'}`}>
+                      <p className="font-black text-white text-sm uppercase">{v.plate}</p>
+                      <p className="text-[9px] text-zinc-600 font-bold uppercase">{v.model}</p>
                     </button>
                   ))}
                 </div>
@@ -215,103 +210,132 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
           </div>
 
           {selectedVehicle && (
-            <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-xl space-y-6">
+            <div className="bg-[#0c0c0e] border border-zinc-900 p-8 rounded-3xl shadow-xl space-y-6">
               <div className="flex items-center justify-between">
-                 <h3 className="text-[10px] font-black text-zinc-600 uppercase flex items-center gap-2 italic">
-                  <Wrench size={16} className="text-[#E11D48]" /> Relatório do Problema
+                 <h3 className="text-[10px] font-bold text-zinc-500 uppercase flex items-center gap-2 italic">
+                  <Wrench size={14} className="text-[#E11D48]" /> Serviços & Peças
                  </h3>
                  <button 
                   onClick={handleAiSuggest} 
-                  disabled={isAiLoading}
-                  className="bg-zinc-950 border border-[#E11D48] text-[#E11D48] px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#E11D48] hover:text-white transition-all text-[9px] font-black uppercase tracking-widest disabled:opacity-50"
+                  className="bg-zinc-900 border border-zinc-800 text-[#E11D48] px-4 py-2 rounded-xl flex items-center gap-2 text-[9px] font-bold uppercase"
                  >
-                   {isAiLoading ? <Loader2 className="animate-spin" size={14}/> : <Sparkles size={14}/>}
-                   IA: Diagnóstico Smart
+                   <Sparkles size={12}/> Sugerir com IA
                  </button>
               </div>
               <textarea 
-                value={problem} onChange={(e) => setProblem(e.target.value)} rows={4}
-                placeholder="DETALHE O QUE O CLIENTE RELATOU OU O QUE FOI ENCONTRADO..."
-                className="w-full bg-[#050505] border-2 border-[#1F1F1F] rounded-[2rem] p-6 text-sm text-white focus:border-[#E11D48] outline-none font-bold"
+                value={problem} onChange={(e) => setProblem(e.target.value)} rows={3}
+                placeholder="Descrição dos serviços realizados..."
+                className="w-full bg-[#050505] border border-zinc-800 rounded-2xl p-5 text-xs text-white focus:border-[#E11D48] outline-none font-medium"
               />
-              
-              <div className="flex items-center justify-between">
-                <h3 className="text-[10px] font-black text-zinc-600 uppercase italic">Itens e Peças</h3>
-                <button onClick={addItem} className="bg-zinc-800 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-[9px] font-black uppercase tracking-widest"><Plus size={14}/> Add Peça</button>
-              </div>
               
               <div className="space-y-3">
                 {items.map(item => (
-                  <div key={item.id} className="flex gap-4 p-4 bg-[#050505] border border-zinc-900 rounded-3xl items-center">
-                    <input type="text" placeholder="DESCRIÇÃO..." value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value.toUpperCase())} className="flex-1 bg-transparent border-none text-xs text-white font-bold outline-none" />
-                    <input type="number" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', e.target.value)} className="w-12 bg-zinc-900 rounded-lg py-2 text-center text-xs font-black" />
-                    <input type="number" value={item.unitPrice} onChange={(e) => updateItem(item.id, 'unitPrice', e.target.value)} className="w-20 bg-zinc-900 rounded-lg py-2 text-center text-xs font-black" />
-                    <button onClick={() => setItems(items.filter(i => i.id !== item.id))} className="text-zinc-800 hover:text-red-500"><Trash2 size={16}/></button>
+                  <div key={item.id} className="flex gap-3 p-3 bg-zinc-900/40 border border-zinc-800 rounded-xl items-center">
+                    <input type="text" placeholder="Item/Peça" value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value.toUpperCase())} className="flex-1 bg-transparent border-none text-[10px] text-white font-bold outline-none uppercase" />
+                    <input type="number" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', e.target.value)} className="w-10 bg-zinc-950 rounded-lg py-1.5 text-center text-[10px] font-bold" />
+                    <input type="number" value={item.unitPrice} onChange={(e) => updateItem(item.id, 'unitPrice', e.target.value)} className="w-16 bg-zinc-950 rounded-lg py-1.5 text-center text-[10px] font-bold" />
+                    <button onClick={() => setItems(items.filter(i => i.id !== item.id))} className="text-zinc-800 hover:text-red-500"><Trash2 size={14}/></button>
                   </div>
                 ))}
+                <button onClick={addItem} className="text-[9px] font-bold text-zinc-500 uppercase flex items-center gap-2 hover:text-white transition-colors ml-2"><Plus size={12}/> Adicionar novo item manualmente</button>
               </div>
             </div>
           )}
         </div>
 
-        <div className="bg-[#0F0F0F] border border-[#1F1F1F] p-8 rounded-[2.5rem] shadow-2xl space-y-8 h-fit sticky top-6">
-           <div className="p-8 bg-[#E11D48] rounded-[2.5rem] shadow-xl relative overflow-hidden">
-              <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-1 italic">Total Líquido</p>
-              <p className="text-4xl font-black text-white italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-              <DollarSign className="absolute top-1/2 -right-4 -translate-y-1/2 text-white/10" size={100} />
+        <div className="bg-[#0c0c0e] border border-zinc-900 p-8 rounded-3xl shadow-xl space-y-6 h-fit sticky top-6">
+           <div className="p-6 bg-[#E11D48] rounded-2xl shadow-xl relative overflow-hidden glow-red">
+              <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest mb-1 italic">Subtotal da OS</p>
+              <p className="text-3xl font-black text-white italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <DollarSign className="absolute top-1/2 -right-4 -translate-y-1/2 text-white/10" size={80} />
            </div>
            <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-zinc-600 uppercase ml-2 italic">Mão de Obra (R$)</label>
-                <input type="number" value={labor} onChange={(e) => setLabor(e.target.value)} className="w-full bg-[#050505] border-2 border-zinc-900 rounded-2xl px-6 py-5 text-white font-black text-xl outline-none" />
+                <label className="text-[9px] font-bold text-zinc-600 uppercase ml-2 italic">Valor de Mão de Obra (R$)</label>
+                <input type="number" value={labor} onChange={(e) => setLabor(e.target.value)} className="w-full bg-[#050505] border border-zinc-800 rounded-xl px-5 py-4 text-white font-bold text-lg outline-none" />
               </div>
-              <button onClick={handleFinalize} disabled={!selectedVehicle} className="w-full bg-white text-black py-7 rounded-[2.5rem] font-black uppercase text-[10px] tracking-[0.3em] hover:bg-[#E11D48] hover:text-white transition-all disabled:opacity-20 italic">Processar Nota Cloud</button>
+              <button onClick={handleFinalize} disabled={!selectedVehicle} className="w-full bg-white text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-[#E11D48] hover:text-white transition-all disabled:opacity-20">Finalizar e Gerar Nota</button>
            </div>
         </div>
       </div>
 
       {showInvoice && osData && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/98 overflow-y-auto p-4">
-          <div className="bg-white w-full max-w-[210mm] rounded-[2rem] p-0 text-zinc-900 shadow-2xl relative">
-             <div className="no-print bg-zinc-50 p-6 flex justify-between border-b sticky top-0 rounded-t-[2rem]">
-               <button onClick={downloadAsImage} className="bg-[#E11D48] text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase flex items-center gap-2">
-                 {isGeneratingImage ? <Loader2 className="animate-spin"/> : <Download/>} Salvar Imagem
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 overflow-y-auto p-4 md:p-10 no-scrollbar">
+          <div className="bg-white w-full max-w-[210mm] rounded-3xl text-zinc-900 shadow-2xl relative">
+             <div className="no-print bg-zinc-100 p-5 flex justify-between border-b rounded-t-3xl">
+               <button onClick={downloadAsImage} className="bg-[#E11D48] text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 active:scale-95 transition-all">
+                 {isGeneratingImage ? <Loader2 className="animate-spin" size={14}/> : <Download size={14}/>} Salvar Nota como Imagem
                </button>
-               <button onClick={() => setShowInvoice(false)} className="text-zinc-400 hover:text-black"><X size={28}/></button>
+               <button onClick={() => setShowInvoice(false)} className="text-zinc-400 hover:text-black"><X size={24}/></button>
              </div>
-             <div ref={invoiceRef} className="p-16 bg-white">
-                <div className="flex justify-between border-b-4 border-black pb-8 mb-10">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center text-white"><Wrench size={32}/></div>
-                    <h1 className="text-3xl font-black tracking-tighter italic">KAEN <span className="text-[#E11D48]">PRO</span></h1>
+             
+             <div ref={invoiceRef} className="p-16 bg-white min-h-[297mm]">
+                <div className="flex justify-between border-b-2 border-zinc-100 pb-10 mb-10">
+                  <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 bg-black rounded-xl flex items-center justify-center text-white"><Wrench size={28}/></div>
+                    <div>
+                      <h1 className="text-2xl font-black tracking-tighter italic uppercase leading-none">KAEN <span className="text-zinc-400">PRO</span></h1>
+                      <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Centro de Manutenção Automotiva</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-black text-zinc-400 uppercase italic">OS NÚMERO</p>
-                    <p className="text-3xl font-black">{osData.osNumber}</p>
+                    <p className="text-[9px] font-bold text-zinc-300 uppercase italic">ORDEM DE SERVIÇO</p>
+                    <p className="text-2xl font-black">#{osData.osNumber}</p>
+                    <p className="text-[10px] font-bold text-zinc-400">{new Date(osData.createdAt).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-8 mb-10">
-                   <div className="bg-zinc-50 p-6 rounded-3xl border">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase italic">Cliente</p>
-                      <p className="text-xl font-black uppercase italic">{osData.clientName}</p>
+
+                <div className="grid grid-cols-2 gap-8 mb-12">
+                   <div className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100">
+                      <p className="text-[9px] font-bold text-zinc-400 uppercase italic mb-1">Proprietário</p>
+                      <p className="text-lg font-black uppercase italic text-zinc-800">{osData.clientName}</p>
                    </div>
-                   <div className="bg-zinc-50 p-6 rounded-3xl border">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase italic">Veículo</p>
-                      <p className="text-xl font-black uppercase italic">{osData.vehiclePlate} • {osData.vehicleModel}</p>
+                   <div className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100">
+                      <p className="text-[9px] font-bold text-zinc-400 uppercase italic mb-1">Identificação Veicular</p>
+                      <p className="text-lg font-black uppercase italic text-zinc-800">{osData.vehiclePlate} • {osData.vehicleModel}</p>
+                      <p className="text-xs font-bold text-zinc-400 mt-1">{osData.vehicleKm} KM RODADOS</p>
                    </div>
                 </div>
-                <table className="w-full text-left mb-10">
-                  <thead className="border-b-2 border-black">
-                    <tr className="text-[10px] font-black uppercase text-zinc-400"><th className="py-4">Item</th><th className="py-4 text-center">Qtd</th><th className="py-4 text-right italic">Subtotal</th></tr>
+
+                <div className="mb-12">
+                  <p className="text-[9px] font-bold text-zinc-300 uppercase italic mb-4 border-b border-zinc-100 pb-2">Discriminação Técnica</p>
+                  <p className="text-sm text-zinc-600 font-medium leading-relaxed italic">"{osData.problem || 'Serviços de manutenção preventiva e corretiva realizados conforme padrões técnicos.'}"</p>
+                </div>
+
+                <table className="w-full text-left mb-16">
+                  <thead className="border-b-2 border-zinc-100">
+                    <tr className="text-[9px] font-bold uppercase text-zinc-400">
+                      <th className="py-4">Descrição do Item</th>
+                      <th className="py-4 text-center">Qtd</th>
+                      <th className="py-4 text-right italic">Valor Parcial</th>
+                    </tr>
                   </thead>
-                  <tbody>
-                    {osData.items.map((i,idx)=>(<tr key={idx}><td className="py-4 font-black uppercase italic text-xs">{i.description}</td><td className="py-4 text-center font-bold">{i.quantity}</td><td className="py-4 text-right font-black italic">R$ {(i.quantity*i.unitPrice).toLocaleString()}</td></tr>))}
-                    {osData.laborValue > 0 && (<tr><td className="py-4 font-black uppercase italic text-xs">Mão de Obra Especializada</td><td className="py-4 text-center">1</td><td className="py-4 text-right font-black italic">R$ {osData.laborValue.toLocaleString()}</td></tr>)}
+                  <tbody className="divide-y divide-zinc-50">
+                    {osData.items.map((i,idx)=>(
+                      <tr key={idx}>
+                        <td className="py-5 font-bold uppercase italic text-[11px] text-zinc-700">{i.description}</td>
+                        <td className="py-5 text-center font-bold text-zinc-400">{i.quantity}</td>
+                        <td className="py-5 text-right font-black italic text-zinc-800">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                      </tr>
+                    ))}
+                    {osData.laborValue > 0 && (
+                      <tr className="bg-zinc-50/30">
+                        <td className="py-5 font-black uppercase italic text-[11px] text-zinc-900">MÃO DE OBRA ESPECIALIZADA</td>
+                        <td className="py-5 text-center font-bold text-zinc-400">01</td>
+                        <td className="py-5 text-right font-black italic text-zinc-900">R$ {osData.laborValue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
-                <div className="text-right pt-10 border-t-4 border-black">
-                  <p className="text-[10px] font-black text-zinc-400 italic">Total Geral Devido</p>
-                  <p className="text-6xl font-black italic">R$ {osData.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+
+                <div className="flex justify-between items-end border-t-2 border-zinc-100 pt-10">
+                  <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-[0.2em] italic">
+                    KAENPRO MOTORS • QUALIDADE EM PRIMEIRO LUGAR
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-zinc-400 italic uppercase mb-1">VALOR TOTAL DO INVESTIMENTO</p>
+                    <p className="text-5xl font-black italic text-zinc-900">R$ {osData.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
                 </div>
              </div>
           </div>
