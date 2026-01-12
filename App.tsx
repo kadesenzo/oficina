@@ -61,7 +61,7 @@ const App: React.FC = () => {
   const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    if (!session) return <Navigate to="/login" />;
+    if (!session) return <Navigate to="/login" replace />;
 
     return (
       <div className="flex h-screen bg-[#0B0B0B] overflow-hidden">
@@ -81,10 +81,9 @@ const App: React.FC = () => {
           />
           
           <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950">
-            {React.cloneElement(children as React.ReactElement<any>, { 
-              session, 
-              syncData 
-            })}
+            {React.isValidElement(children) 
+              ? React.cloneElement(children as React.ReactElement<any>, { session, syncData })
+              : children}
           </main>
 
           {isSidebarOpen && (
@@ -105,55 +104,22 @@ const App: React.FC = () => {
         
         <Route 
           path="/login" 
-          element={session ? <Navigate to="/dashboard" /> : <LoginPage onLogin={handleLogin} />} 
+          element={session ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={handleLogin} />} 
         />
         
-        <Route 
-          path="/dashboard" 
-          element={<PrivateLayout><Dashboard /></PrivateLayout>} 
-        />
-        <Route 
-          path="/orders" 
-          element={<PrivateLayout><ServiceOrders /></PrivateLayout>} 
-        />
-        <Route 
-          path="/orders/new" 
-          element={<PrivateLayout><NewServiceOrder /></PrivateLayout>} 
-        />
-        <Route 
-          path="/billing" 
-          element={<PrivateLayout><Billing /></PrivateLayout>} 
-        />
-        <Route 
-          path="/inventory" 
-          element={<PrivateLayout><Inventory /></PrivateLayout>} 
-        />
-        <Route 
-          path="/clients" 
-          element={<PrivateLayout><Clients role={session?.role || 'Dono'} /></PrivateLayout>} 
-        />
-        <Route 
-          path="/clients/:id" 
-          element={<PrivateLayout><ClientDetails role={session?.role || 'Dono'} /></PrivateLayout>} 
-        />
-        <Route 
-          path="/vehicles" 
-          element={<PrivateLayout><Vehicles /></PrivateLayout>} 
-        />
-        <Route 
-          path="/vehicles/:id" 
-          element={<PrivateLayout><VehicleDetails /></PrivateLayout>} 
-        />
-        <Route 
-          path="/employees" 
-          element={<PrivateLayout><Employees /></PrivateLayout>} 
-        />
-        <Route 
-          path="/terminal" 
-          element={<PrivateLayout><MechanicTerminal /></PrivateLayout>} 
-        />
+        <Route path="/dashboard" element={<PrivateLayout><Dashboard /></PrivateLayout>} />
+        <Route path="/orders" element={<PrivateLayout><ServiceOrders /></PrivateLayout>} />
+        <Route path="/orders/new" element={<PrivateLayout><NewServiceOrder /></PrivateLayout>} />
+        <Route path="/billing" element={<PrivateLayout><Billing /></PrivateLayout>} />
+        <Route path="/inventory" element={<PrivateLayout><Inventory /></PrivateLayout>} />
+        <Route path="/clients" element={<PrivateLayout><Clients role={session?.role || 'Dono'} /></PrivateLayout>} />
+        <Route path="/clients/:id" element={<PrivateLayout><ClientDetails role={session?.role || 'Dono'} /></PrivateLayout>} />
+        <Route path="/vehicles" element={<PrivateLayout><Vehicles /></PrivateLayout>} />
+        <Route path="/vehicles/:id" element={<PrivateLayout><VehicleDetails /></PrivateLayout>} />
+        <Route path="/employees" element={<PrivateLayout><Employees /></PrivateLayout>} />
+        <Route path="/terminal" element={<PrivateLayout><MechanicTerminal /></PrivateLayout>} />
         
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
